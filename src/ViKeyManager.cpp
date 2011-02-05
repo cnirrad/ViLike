@@ -153,7 +153,8 @@ bool ViKeyManager::is_text_widget( Gtk::Widget *w ) const
 {
    const gchar *type = G_OBJECT_TYPE_NAME(w->gobj());
 
-   if (strcmp(type, "gtkmm__GtkTextView") == 0) 
+   if (strcmp(type, "gtkmm__GtkTextView") == 0 ||
+       strcmp(type, "gtkmm__GtkSourceView") == 0) 
    {
         return true;
    }

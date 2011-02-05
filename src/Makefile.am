@@ -10,5 +10,5 @@ sourcerer_SOURCES =  main.cc \
 
 sourcerer_LDFLAGS = 
 
-AM_CPPFLAGS = $(SOURCERER_CFLAGS)
-sourcerer_LDADD = $(SOURCERER_LIBS)
+AM_CPPFLAGS = $(GTKMM_CFLAGS)
+sourcerer_LDADD = $(GTKMM_LIBS)
