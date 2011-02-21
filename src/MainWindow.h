@@ -20,6 +20,7 @@ class MainWindow : public Gtk::Window
         MainWindow();
         virtual ~MainWindow();
 
+        ViKeyManager* get_key_manager() const;
 
     protected:
 

@@ -1,78 +1,150 @@
 #include <iostream>
 #include "ViKeyManager.h"
+#include "utils.h"
 
-#define MODIFIER_MASK = GDK_CONTROL_MASK &&     \
-                        GDK_MOD1_MASK    &&     \
-                        GDK_MOD2_MASK    &&     \
-                        GDK_MOD3_MASK    &&     \
-                        GDK_MOD4_MASK    &&     \
-                        GDK_MOD5_MASK
 
 #define IS_MODIFIER_KEY( sym )                              \
        ( sym == GDK_Alt_L || sym == GDK_Alt_R ||            \
          sym == GDK_Control_L || sym == GDK_Control_R ||    \
          sym == GDK_Meta_L || sym == GDK_Meta_R ||          \
          sym == GDK_Super_L || sym == GDK_Super_R ||        \
-         sym == GDK_Hyper_L || sym == GDK_Hyper_R )
+         sym == GDK_Hyper_L || sym == GDK_Hyper_R ||        \
+         sym == GDK_Shift_L || sym == GDK_Shift_R )
+bool
+wait_to_execute_action( unsigned char flags )
+{
+    return (flags & ( KeyActionBase::await_motion | KeyActionBase::await_param )) > 0;
+}
+
 
 ViKeyManager::ViKeyManager(Gtk::Window *w) :
+    m_count(0),
+    m_current_register(0x00),
+    m_insertMap(),
+    m_key(""),
     m_mode(vi_normal),
+    m_normalMap(),
+    m_registers(),
     m_window(w)
 {
-    
+
 }
 
 ViKeyManager::~ViKeyManager()
 {
 }
 
-bool ViKeyManager::map_key(ViMode mode, const char *key, ViCallback cb)
+bool ViKeyManager::map_key(ViMode mode, const char *key, KeyActionBase *action )
 {
+    switch ( mode )
+    {
+        case vi_normal:
+            m_normalMap[key] = action;
+            break;
+        case vi_insert:
+            m_insertMap[key] = action;
+            break;
+        default:
+            g_print("Warning: map_key ignored for mode.");
+            break;
+    }
+
     return true;
 }
 
 
 bool ViKeyManager::on_key_press( GdkEventKey *event )
 {
-
-    if ((event->state & GDK_MOD1_MASK) == GDK_MOD1_MASK)
+    //
+    //  Escape key cannot be overridden
+    //
+    if (event->keyval == GDK_Escape)
     {
-        g_print("Alt!");
+        m_mode = vi_normal;
+        clear_key_buffer();
+        return true;
     }
 
     Gtk::Widget *w = m_window->get_focus();
 
+    Glib::ustring str = key_to_str( event );
+
+    m_key = m_key + str;
+
     if (m_mode == vi_insert)
     {
-        if (event->keyval == GDK_Escape)
-        {
-            m_mode = vi_normal;
-            return false;
-        }
         if (IS_MODIFIER_KEY( event->keyval ))
         {
-            g_print("Ignoring Modifier\n");
             return true;
         }
 
+        KeyActionBase *action = m_insertMap[m_key];
+        if (action)
+        {
+            action->execute(w, 1, m_params);
+            clear_key_buffer(action->m_flags);
+            return true;
+        }
+
+        //
+        //  Pass the key press on
+        //
         gboolean ret_val;
         gtk_signal_emit_by_name( (GtkObject*)w->gobj(), 
                                  "key-press-event", 
                                  event,
                                  &ret_val );
+        clear_key_buffer();
         return false;
     }
 
-    // TODO: Don't hardcode this
-    if (event->length > 0 && event->string[0] == 'i')
+    //
+    //  Normal Mode. 
+    //
+    if (m_submode == vi_wait_param && m_action != NULL)
     {
-        m_mode = vi_insert;
-    } 
-
-    if (is_text_widget( w ))
-    {
-
+        m_params = m_params + str;
+        m_action->execute( w, m_count, m_params );
+        clear_key_buffer();
+        return true;
     }
+
+    //
+    //  Handle a count modifier. 
+    //
+    if (m_key == str && event->keyval >= GDK_0 && event->keyval <= GDK_9)
+    {
+        //
+        //  Count modifier not allowed to start with '0'
+        //
+        if (!(event->keyval == GDK_0 && m_count == 0))
+        {
+            int num = event->keyval - GDK_0;
+            m_count = (m_count * 10) + num;
+            m_key = "";
+            g_print("Count = %i\n", m_count);
+            return true;
+        }
+    }
+
+    KeyActionBase *action = m_normalMap[m_key];
+    if (action)
+    {
+        if (wait_to_execute_action( action->m_flags ))
+        {
+            m_action = action; 
+            return true;
+        }
+
+        if (m_count == 0)
+            m_count = 1;
+
+        action->execute(w, m_count, m_params);
+        clear_key_buffer(action->m_flags);
+        return true;
+    }
+    g_print("No action for key %s\n", m_key.data());
+
     return true;
 }
 
@@ -85,6 +157,13 @@ Glib::ustring ViKeyManager::key_to_str( GdkEventKey *event )
 {
     Glib::ustring key_str;
 
+    if ( event->keyval == GDK_Shift_L || event->keyval == GDK_Shift_R )
+    {
+        //
+        // Ignore the shift key
+        //
+        return "";
+    }
     if (event->keyval > GDK_space && event->keyval <= GDK_asciitilde)
     {
         key_str = (char)event->keyval;
@@ -105,13 +184,21 @@ Glib::ustring ViKeyManager::key_to_str( GdkEventKey *event )
     {
         key_str = "CR";
     }
-    else if (event->keyval == GDK_Escape)
-    {
-        key_str = "Esc";
-    }
     else if (event->keyval == GDK_space)
     {
         key_str = "Space";
+    }
+    else if (event->keyval == GDK_Page_Up)
+    {
+        key_str = "PgUp";
+    }
+    else if (event->keyval == GDK_Page_Down)
+    {
+        key_str = "PgDn";
+    }
+    else if (event->keyval == GDK_End)
+    {
+        key_str = "End";
     }
     else if (event->keyval >= GDK_F1 && event->keyval <= GDK_F35)
     {
@@ -145,20 +232,31 @@ Glib::ustring ViKeyManager::key_to_str( GdkEventKey *event )
     }
     return key_str;
 }
-                           
-//
-//  Protected
-//
-bool ViKeyManager::is_text_widget( Gtk::Widget *w ) const
-{
-   const gchar *type = G_OBJECT_TYPE_NAME(w->gobj());
 
-   if (strcmp(type, "gtkmm__GtkTextView") == 0 ||
-       strcmp(type, "gtkmm__GtkSourceView") == 0) 
-   {
-        return true;
-   }
-   return false;
+void ViKeyManager::clear_key_buffer( unsigned char flags )
+{
+    m_key = "";
+    m_params = "";
+
+    if (!wait_to_execute_action( flags ))
+    {
+        m_submode = vi_sub_none;
+        m_action = NULL;
+        m_count = 0;
+    }
+
+    if ( flags && KeyActionBase::no_reset_cur_reg != KeyActionBase::no_reset_cur_reg )
+        m_current_register = 0x00;
 }
 
+void ViKeyManager::set_current_register( char reg )
+{
+    m_current_register = reg;
+}
+
+void ViKeyManager::set_mode( ViMode m )
+{
+    m_mode = m;
+}
+                           
 

@@ -30,6 +30,11 @@ MainWindow::~MainWindow()
     delete vi;
 }
 
+ViKeyManager* MainWindow::get_key_manager() const
+{
+    return vi;
+}
+
 bool MainWindow::on_key_press_event(GdkEventKey *event)
 {
     Gtk::Widget *focused = get_focus();
