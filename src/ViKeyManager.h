@@ -20,18 +20,26 @@ enum ViSubMode
 };
 
 class ViKeyManager;
+class ViActionContext;
+
+enum Flags {
+    await_motion = 0x01,
+    await_param = 0x02,
+    no_reset_cur_reg = 0x04,
+    is_motion = 0x08
+};
 
 /**
  * Abstract base class of all actions.
  */
-class KeyActionBase {
+class ExecutableAction {
     public:
-        KeyActionBase(ViKeyManager *vi) : 
+        ExecutableAction(ViKeyManager *vi) : 
             m_flags(0),
             m_vi(vi)
         {
         }
-        KeyActionBase(ViKeyManager *vi, unsigned char flags) : 
+        ExecutableAction(ViKeyManager *vi, unsigned char flags) : 
             m_flags(flags),
             m_vi(vi)
         {
@@ -41,19 +49,79 @@ class KeyActionBase {
 
         unsigned char m_flags;
         ViKeyManager *m_vi;
-
-
-    enum Flags {
-        await_motion = 0x01,
-        await_param = 0x02,
-        no_reset_cur_reg = 0x04,
-        is_motion = 0x08
-    };
-
 };
 
-typedef std::map<Glib::ustring, KeyActionBase*> KeyMap;
-typedef std::pair<Glib::ustring, KeyActionBase*> KeyMapPair;
+class MotionAction : public ExecutableAction {
+    public:
+        MotionAction(ViKeyManager *vi) : 
+            ExecutableAction(vi, is_motion),
+            m_ext_sel(false)
+        {
+        }
+
+        MotionAction(ViKeyManager *vi, unsigned char flags) :
+            ExecutableAction(vi, is_motion | flags)
+        {
+        }
+
+        bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+        bool execute_as_subcommand(Gtk::Widget *w, ViActionContext *context);
+
+        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &param) = 0;
+
+    protected:
+        gboolean m_ext_sel;
+};
+
+class ViActionContext {
+    public:
+        ViActionContext()
+        {
+            reset();
+        }
+
+        void execute(Gtk::Widget *w);
+
+        void reset();
+
+        ExecutableAction* get_action() { return m_action; }
+        void set_action(ExecutableAction *action) 
+        { 
+            m_action = action; 
+            m_flags = action->m_flags;
+        }
+
+        MotionAction* get_motion() { return m_motion; }
+        void set_motion(MotionAction *motion) 
+        { 
+            m_motion = motion; 
+            m_flags = m_flags ^ await_motion;
+            m_flags = m_flags | motion->m_flags;
+        }
+
+        int get_count() { return m_count; }
+        void set_count( int count ) { m_count = count; }
+
+        Glib::ustring& get_param() { return m_param; }
+        void set_param( Glib::ustring p ) 
+        { 
+            m_param = p; 
+            m_flags = m_flags ^ await_param;
+        }
+
+        unsigned char get_flags() { return m_flags; }
+        void set_submode(unsigned char f) { m_flags = f; }
+
+    protected:
+        ExecutableAction *m_action;
+        MotionAction *m_motion;
+        unsigned int m_count;
+        Glib::ustring m_param;
+        unsigned char m_flags;
+};
+
+typedef std::map<Glib::ustring, ExecutableAction*> KeyMap;
+typedef std::pair<Glib::ustring, ExecutableAction*> KeyMapPair;
 
 class ViKeyManager
 {
@@ -67,7 +135,7 @@ class ViKeyManager
         /**
          * Adds a key mapping.
          */
-        virtual bool map_key(ViMode mode, const char *key, KeyActionBase *cb);
+        virtual bool map_key(ViMode mode, const char *key, ExecutableAction *cb);
 
         /**
          * Translates a keypress.
@@ -86,7 +154,7 @@ class ViKeyManager
         Glib::ustring get_register( char reg );
         void set_register( char reg, Glib::ustring text );
 
-        KeyActionBase* get_saved_action() const;
+        ViActionContext* get_context() const;
 
         /**
          * Gets the current ViMode
@@ -106,39 +174,14 @@ class ViKeyManager
         Gtk::Window *m_window;
 
         Glib::ustring m_key;
-        Glib::ustring m_params;
         int m_count;
         char m_current_register;       // the register to use for the next operation. (0x00 means no register) 
-        KeyActionBase *m_action;       // the current action if in a sub mode
+        ViActionContext *m_context;       
 
         KeyMap m_normalMap;
         KeyMap m_insertMap;
 
         std::map<char, Glib::ustring> m_registers;
-        std::stack<KeyActionBase *> m_action_stack;
-};
-
-
-class MotionAction : public KeyActionBase {
-    public:
-        MotionAction(ViKeyManager *vi) : 
-            KeyActionBase(vi, is_motion),
-            m_ext_sel(false)
-            
-        {
-        }
-
-        MotionAction(ViKeyManager *vi, unsigned char flags) :
-            KeyActionBase(vi, is_motion | flags)
-        {
-        }
-
-        bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &param) = 0;
-
-    protected:
-        gboolean m_ext_sel;
 };
 
 

@@ -10,14 +10,16 @@
          sym == GDK_Super_L || sym == GDK_Super_R ||        \
          sym == GDK_Hyper_L || sym == GDK_Hyper_R ||        \
          sym == GDK_Shift_L || sym == GDK_Shift_R )
+
 bool
 wait_to_execute_action( unsigned char flags )
 {
-    return (flags & ( KeyActionBase::await_motion | KeyActionBase::await_param )) > 0;
+    return (flags & ( await_motion | await_param )) > 0;
 }
 
 
 ViKeyManager::ViKeyManager(Gtk::Window *w) :
+    m_context(),
     m_count(0),
     m_current_register(0x00),
     m_insertMap(),
@@ -27,14 +29,15 @@ ViKeyManager::ViKeyManager(Gtk::Window *w) :
     m_registers(),
     m_window(w)
 {
-
+    m_context = new ViActionContext();
 }
 
 ViKeyManager::~ViKeyManager()
 {
+    delete m_context;
 }
 
-bool ViKeyManager::map_key(ViMode mode, const char *key, KeyActionBase *action )
+bool ViKeyManager::map_key(ViMode mode, const char *key, ExecutableAction *action )
 {
     switch ( mode )
     {
@@ -78,10 +81,11 @@ bool ViKeyManager::on_key_press( GdkEventKey *event )
 
     if (m_mode == vi_insert)
     {
-        KeyActionBase *action = m_insertMap[m_key];
+        ExecutableAction *action = m_insertMap[m_key];
         if (action)
         {
-            action->execute(w, 1, m_params);
+            Glib::ustring params = "";
+            action->execute(w, 1, params);
             clear_key_buffer(action->m_flags);
             return true;
         }
@@ -101,10 +105,10 @@ bool ViKeyManager::on_key_press( GdkEventKey *event )
     //
     //  Normal Mode. 
     //
-    if (BIT_ON(m_submode, vi_wait_param) && m_action != NULL)
+    if (BIT_ON(m_context->get_flags(), await_param) )
     {
-        m_params = m_params + str;
-        m_action->execute( w, m_count, m_params );
+        m_context->set_param( str );
+        m_context->execute( w );
         clear_key_buffer();
         return true;
     }
@@ -121,33 +125,26 @@ bool ViKeyManager::on_key_press( GdkEventKey *event )
         {
             int num = event->keyval - GDK_0;
             m_count = (m_count * 10) + num;
+            m_context->set_count(m_count);
             m_key = "";
             return true;
         }
     }
 
-    KeyActionBase *action = m_normalMap[m_key];
+    ExecutableAction *action = m_normalMap[m_key];
     if (action)
     {
-        if (BIT_ON(action->m_flags, KeyActionBase::await_param))
+        if (m_context->get_action() == NULL)
         {
-            m_submode = m_submode | vi_wait_param; 
-            m_action = action; 
-            return true;
+            m_context->set_action( action );
         }
-        else if (BIT_ON(action->m_flags, KeyActionBase::await_motion))
+        else if (BIT_ON(action->m_flags, is_motion))
         {
-            m_action = action; 
-            m_submode = vi_wait_motion;
-            m_key = "";
-            m_count = 0;
-            return true;
+            MotionAction *motion = dynamic_cast<MotionAction*>(action);
+            m_context->set_motion( motion );
         }
 
-        if (m_count == 0)
-            m_count = 1;
-
-        action->execute(w, m_count, m_params);
+        m_context->execute(w);
         clear_key_buffer(action->m_flags);
         return true;
     }
@@ -248,16 +245,15 @@ Glib::ustring ViKeyManager::key_to_str( GdkEventKey *event )
 void ViKeyManager::clear_key_buffer( unsigned char flags )
 {
     m_key = "";
-    m_params = "";
 
     if (!wait_to_execute_action( flags ))
     {
         m_submode = vi_sub_none;
-        m_action = NULL;
+        m_context->reset();
         m_count = 0;
     }
 
-    if ( !BIT_ON(flags, KeyActionBase::no_reset_cur_reg))
+    if ( !BIT_ON(flags, no_reset_cur_reg))
         m_current_register = 0x00;
 }
 
@@ -290,46 +286,75 @@ void ViKeyManager::set_mode( ViMode m )
 {
     m_mode = m;
 }
-                           
 
 unsigned char ViKeyManager::get_sub_mode() const
 {
     return m_submode;
 }
 
-KeyActionBase* ViKeyManager::get_saved_action() const
+
+//
+//  VI Action Context
+//
+ViActionContext* ViKeyManager::get_context() const
 {
-    return m_action;
+    return m_context;
 }
 
+void
+ViActionContext::execute(Gtk::Widget *w)
+{
+    if ( (BIT_ON(m_flags, await_motion) && m_motion == NULL) ||
+         (BIT_ON(m_flags, await_param) && m_param == "")) 
+    {
+        return;
+    }
+    
+    if (m_motion != NULL)
+    {
+        m_motion->execute_as_subcommand(w, this);
+    }
+    else if (m_action != NULL)
+    {
+        m_action->execute(w, m_count, m_param);
+    }
+}
 
+void
+ViActionContext::reset()
+{
+    m_action = NULL;
+    m_motion = NULL;
+    m_count = 1;
+    m_param = "";
+    m_flags = 0x00;
+}
+
+//
+//  MotionAction
+//
 bool
 MotionAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
+    perform_motion(w, count_modifier, params);
+}
 
+bool
+MotionAction::execute_as_subcommand(Gtk::Widget *w, ViActionContext *context)
+{
     //
     //  If waiting for a motion, then extend selection will be
     //  true. The selection is how the command waiting for the 
     //  motion will know what to act upon.
     //
-    if (BIT_ON(m_vi->get_sub_mode(), vi_wait_motion)) 
-    {
-        m_ext_sel = true;
-    }
-    else
-    {
-        m_ext_sel = false;
-    }
+    m_ext_sel = true;
 
-    perform_motion(w, count_modifier, params);
+    perform_motion(w, context->get_count(), context->get_param());
 
-    if (BIT_ON(m_vi->get_sub_mode(), vi_wait_motion))
+    if (context)
     {
-        KeyActionBase *action = m_vi->get_saved_action();
-        if (action)
-        {
-            action->execute(w, count_modifier, params); 
-        }
+        ExecutableAction *a = context->get_action();
+        a->execute(w, context->get_count(), context->get_param()); 
     }
 
     //
@@ -337,7 +362,7 @@ MotionAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
     // allow other commands to know the range to act on. Remove the 
     // selection now.
     //
-    if (m_ext_sel, m_vi->get_mode() != vi_visual && is_text_widget(w))
+    if (m_ext_sel && m_vi->get_mode() != vi_visual && is_text_widget(w))
     {
         Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();

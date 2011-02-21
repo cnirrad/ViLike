@@ -23,3 +23,17 @@ get_cursor_iter( Glib::RefPtr<Gtk::TextBuffer> buffer )
     return buffer->get_iter_at_mark( cursor );
 }
 
+void set_cursor( Gtk::TextBuffer::iterator location, bool ext_sel )
+{
+        Glib::RefPtr<Gtk::TextBuffer> buffer = location.get_buffer();
+        if ( ext_sel )
+        {
+            Glib::RefPtr< Gtk::TextBuffer::Mark > sel_bound =
+                                buffer->get_selection_bound();
+            buffer->move_mark( sel_bound, location );
+        }
+        else 
+        {
+            buffer->place_cursor( location );
+        }
+}

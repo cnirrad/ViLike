@@ -52,6 +52,8 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "$", eol_act );
     vi->map_key( vi_normal, "0", bol_act );
 
+    vi->map_key( vi_normal, "f", new FindAction( vi ));
+
     //
     //  Insert/append
     //
@@ -71,6 +73,8 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "y", new YankAction( vi ));
     vi->map_key( vi_normal, "p", new PutAction( vi ));
     vi->map_key( vi_normal, "d", new DeleteAction( vi ));
+    vi->map_key( vi_normal, "x", new DeleteOneAction( vi ));
+    vi->map_key( vi_normal, "X", new DeleteOneAction( vi, true ));
 
     //
     //  Marks

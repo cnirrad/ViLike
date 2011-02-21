@@ -18,5 +18,11 @@ bool is_text_widget( Gtk::Widget *w );
 Gtk::TextBuffer::iterator 
 get_cursor_iter( Glib::RefPtr<Gtk::TextBuffer> buffer );
 
+/**
+ * Sets the cursor position to location. If ext_sel is true, 
+ * a selection will be made from the current cursor location
+ * to the given location.
+ */
+void set_cursor( Gtk::TextBuffer::iterator location, bool ext_sel );
 
 #endif

@@ -28,7 +28,7 @@ MovementAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring
 }
 
 ModeAction::ModeAction( ViKeyManager *vi, ViMode mode ) :
-    KeyActionBase(vi),
+    ExecutableAction(vi),
     m_mode(mode),
     m_move_act(NULL)
 {
@@ -36,7 +36,7 @@ ModeAction::ModeAction( ViKeyManager *vi, ViMode mode ) :
 }
 
 ModeAction::ModeAction( MovementAction *act, ViKeyManager *vi, ViMode mode ) :
-    KeyActionBase(vi),
+    ExecutableAction(vi),
     m_mode(mode),
     m_move_act(act)
 {
@@ -94,7 +94,11 @@ Glib::ustring yank(ViKeyManager *vi, Gtk::Widget *w, bool del = false)
         char r = vi->get_current_register();
 
         vi->set_register(r, text);
-        g_print("Set %c with %s\n", r, text.data());
+
+        if (r != 0x00)
+            g_print("Set %c with \"%s\"\n", r, text.data());
+        else
+            g_print("Set default register with \"%s\"\n", text.data());
 
         if (del)
         {
@@ -132,7 +136,29 @@ bool
 DeleteAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
 {
     yank(m_vi, w, true);
+    g_print("Deleted text.");
+    return true;
+}
 
+bool
+DeleteOneAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
+{
+    if (is_text_widget(w))
+    {
+        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
+
+        Gtk::TextBuffer::iterator end = get_cursor_iter( buffer ); 
+
+        if (m_before)
+            end.backward_cursor_position();
+        else
+            end.forward_cursor_position();
+
+        set_cursor( end, true );
+        yank(m_vi, w, true);
+    }
+   
     return true;
 }
 
@@ -189,27 +215,18 @@ GotoMarkAction::perform_motion( Gtk::Widget *w, int count_modifier, Glib::ustrin
         Gtk::TextBuffer::iterator iter = 
                         buffer->get_iter_at_mark( mark );
 
-        if ( m_ext_sel )
-        {
-            Glib::RefPtr< TextBuffer::Mark > sel_bound =
-                                buffer->get_selection_bound();
-            buffer->move_mark( sel_bound, iter );
-        }
-        else 
-        {
-            buffer->place_cursor( iter );
-        }
-    }
+        set_cursor( iter, m_ext_sel );
+   }
 
 }
 
 CompoundAction::CompoundAction( ViKeyManager *vi, ... ) :
-    KeyActionBase( vi )
+    ExecutableAction( vi )
 {
     va_list vl;
     va_start(vl, vi);
 
-    KeyActionBase *action = va_arg(vl, KeyActionBase*);
+    ExecutableAction *action = va_arg(vl, ExecutableAction*);
     m_actions.push_back(action);
 
     va_end(vl);
@@ -218,26 +235,59 @@ CompoundAction::CompoundAction( ViKeyManager *vi, ... ) :
 bool 
 CompoundAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
-    std::list<KeyActionBase*>::iterator it; 
+    std::list<ExecutableAction*>::iterator it; 
 
     for ( it = m_actions.begin(); it != m_actions.end(); it++ )
     {
-        ((KeyActionBase*)*it)->execute(w, count_modifier, params);
+        ((ExecutableAction*)*it)->execute(w, count_modifier, params);
     }
 }
 
-bool 
-FindAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+void 
+FindAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
+    if (params.length() > 1)
+    {
+        if (params == "<Space>")
+        {
+            params = " ";
+        }
+        else
+        {
+            g_print("Invalid search character: %s", params.data());
+            return;
+        }
+    }
+
     if (is_text_widget(w))
     {
         Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
         
-        Gtk::TextBuffer::iterator start = get_cursor_iter( buffer ); 
+        Gtk::TextBuffer::iterator cursor = get_cursor_iter( buffer ); 
+        cursor.forward_cursor_position();
 
-        //Glib::ustring text = buffer->get_text( start, end );
+        Gtk::TextBuffer::iterator end(cursor); 
+        end.forward_to_line_end();
 
+        Glib::ustring txt = cursor.get_slice( end );
+
+        int idx = txt.find( params[0] );
+
+        if (idx > 0)
+        {
+            g_print("Found %c at %i\n", params[0], idx);
+
+            //
+            //  If extending the selection, include the search
+            //  character as part of the selection.
+            //
+            if (m_ext_sel)
+                idx++;
+
+            cursor.forward_cursor_positions(idx);
+
+            set_cursor( cursor, m_ext_sel );
+        }
     }
 }
-

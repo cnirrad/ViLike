@@ -15,7 +15,7 @@ class MovementAction : public MotionAction {
         gint m_count;
 };
 
-class ModeAction : public KeyActionBase {
+class ModeAction : public ExecutableAction {
     public:
         ModeAction( ViKeyManager *vi, ViMode mode );
         ModeAction( MovementAction *act, ViKeyManager *vi, ViMode mode );
@@ -27,10 +27,10 @@ class ModeAction : public KeyActionBase {
         MovementAction *m_move_act;
 };
 
-class ReplaceAction : public KeyActionBase {
+class ReplaceAction : public ExecutableAction {
     public:
         ReplaceAction( ViKeyManager *vi ) : 
-            KeyActionBase(vi)
+            ExecutableAction(vi)
         {
         }
 
@@ -38,20 +38,20 @@ class ReplaceAction : public KeyActionBase {
 
 };
 
-class ChooseRegistryAction : public KeyActionBase {
+class ChooseRegistryAction : public ExecutableAction {
     public:
         ChooseRegistryAction( ViKeyManager *vi ) :
-            KeyActionBase( vi, await_param )
+            ExecutableAction( vi, await_param )
         {
         }
 
         virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 };
 
-class YankAction : public KeyActionBase {
+class YankAction : public ExecutableAction {
     public:
         YankAction( ViKeyManager *vi ) : 
-            KeyActionBase( vi, await_motion )
+            ExecutableAction( vi, await_motion )
         {
         }
 
@@ -59,10 +59,10 @@ class YankAction : public KeyActionBase {
 
 };
 
-class PutAction : public KeyActionBase {
+class PutAction : public ExecutableAction {
     public:
         PutAction( ViKeyManager *vi ) :
-            KeyActionBase( vi )
+            ExecutableAction( vi )
         {
         }
 
@@ -70,11 +70,11 @@ class PutAction : public KeyActionBase {
 
 };
 
-class DeleteAction : public KeyActionBase {
+class DeleteAction : public ExecutableAction {
 
     public:
         DeleteAction( ViKeyManager *vi ) : 
-            KeyActionBase( vi, await_motion )
+            ExecutableAction( vi, await_motion )
         {
         }
 
@@ -82,10 +82,25 @@ class DeleteAction : public KeyActionBase {
 
 };
 
-class ChangeAction : public KeyActionBase {
+class DeleteOneAction : public ExecutableAction {
+
+    public:
+        DeleteOneAction( ViKeyManager *vi, bool before = false ) : 
+            ExecutableAction( vi ),
+            m_before( before )
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+
+    protected:
+        bool m_before;
+};
+
+class ChangeAction : public ExecutableAction {
     public:
         ChangeAction( ViKeyManager *vi ) : 
-            KeyActionBase( vi, await_motion )
+            ExecutableAction( vi, await_motion )
         {
         }
 
@@ -93,10 +108,10 @@ class ChangeAction : public KeyActionBase {
 
 };
 
-class CreateMarkAction : public KeyActionBase {
+class CreateMarkAction : public ExecutableAction {
     public:
         CreateMarkAction( ViKeyManager *vi ) :
-            KeyActionBase( vi, await_param )
+            ExecutableAction( vi, await_param )
         {
         }
 
@@ -113,24 +128,24 @@ class GotoMarkAction : public MotionAction {
         virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 };
 
-class CompoundAction : public KeyActionBase {
+class CompoundAction : public ExecutableAction {
     public:
         CompoundAction( ViKeyManager *vi, ... );
 
         virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 
     protected:
-        std::list<KeyActionBase *> m_actions;
+        std::list<ExecutableAction *> m_actions;
 };
 
-class FindAction : public KeyActionBase {
+class FindAction : public MotionAction {
     public:
         FindAction( ViKeyManager *vi ) :
-            KeyActionBase( vi, await_param )
+            MotionAction( vi, await_param )
         {
         }
 
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 };
 
 #endif
