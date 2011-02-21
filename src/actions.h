@@ -4,16 +4,15 @@
 #include "ViKeyManager.h"
 
 
-class MovementAction : public KeyActionBase {
+class MovementAction : public MotionAction {
     public:
-        MovementAction( GtkMovementStep step, gint count, gboolean ext_sel = false );
+        MovementAction( ViKeyManager *vi, GtkMovementStep step, gint count );
 
         virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 
     protected:
         GtkMovementStep m_step;
         gint m_count;
-        gboolean m_ext_sel;
 };
 
 class ModeAction : public KeyActionBase {
@@ -24,30 +23,63 @@ class ModeAction : public KeyActionBase {
         virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 
     protected:
-        ViKeyManager *m_vi;
         ViMode m_mode;
         MovementAction *m_move_act;
 };
 
 class ReplaceAction : public KeyActionBase {
     public:
-        ReplaceAction( ViKeyManager *vi ) : m_vi(vi) 
+        ReplaceAction( ViKeyManager *vi ) : 
+            KeyActionBase(vi)
         {
         }
 
         virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 
-    protected:
-        ViKeyManager *m_vi;
 };
 
 class ChooseRegistryAction : public KeyActionBase {
     public:
-        ChooseRegistryAction( ViKeyManager *vi );
+        ChooseRegistryAction( ViKeyManager *vi ) :
+            KeyActionBase( vi, await_param )
+        {
+        }
 
         virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-    protected:
-        ViKeyManager *m_vi;
+};
+
+class YankAction : public KeyActionBase {
+    public:
+        YankAction( ViKeyManager *vi ) : 
+            KeyActionBase( vi, await_motion )
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+
+};
+
+class PutAction : public KeyActionBase {
+    public:
+        PutAction( ViKeyManager *vi ) :
+            KeyActionBase( vi )
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+
+};
+
+class DeleteAction : public KeyActionBase {
+
+    public:
+        DeleteAction( ViKeyManager *vi ) : 
+            KeyActionBase( vi, await_motion )
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+
 };
 
 #endif

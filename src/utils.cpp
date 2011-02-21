@@ -15,7 +15,7 @@ bool is_text_widget( Gtk::Widget *w )
 
 
 Gtk::TextBuffer::iterator 
-get_cursor_iter( Gtk::TextBuffer *buffer )
+get_cursor_iter( Glib::RefPtr<Gtk::TextBuffer> buffer )
 {
     Glib::RefPtr< Gtk::TextBuffer::Mark > cursor;
 

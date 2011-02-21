@@ -65,6 +65,11 @@ bool ViKeyManager::on_key_press( GdkEventKey *event )
         return true;
     }
 
+    if (IS_MODIFIER_KEY( event->keyval ))
+    {
+        return true;
+    }
+
     Gtk::Widget *w = m_window->get_focus();
 
     Glib::ustring str = key_to_str( event );
@@ -73,11 +78,6 @@ bool ViKeyManager::on_key_press( GdkEventKey *event )
 
     if (m_mode == vi_insert)
     {
-        if (IS_MODIFIER_KEY( event->keyval ))
-        {
-            return true;
-        }
-
         KeyActionBase *action = m_insertMap[m_key];
         if (action)
         {
@@ -130,9 +130,18 @@ bool ViKeyManager::on_key_press( GdkEventKey *event )
     KeyActionBase *action = m_normalMap[m_key];
     if (action)
     {
-        if (wait_to_execute_action( action->m_flags ))
+        if (BIT_ON(action->m_flags, KeyActionBase::await_param))
+        {
+            m_submode = vi_wait_param; 
+            m_action = action; 
+            return true;
+        }
+        else if (BIT_ON(action->m_flags, KeyActionBase::await_motion))
         {
             m_action = action; 
+            m_submode = vi_wait_motion;
+            m_key = "";
+            m_count = 0;
             return true;
         }
 
@@ -211,7 +220,7 @@ Glib::ustring ViKeyManager::key_to_str( GdkEventKey *event )
     }
 
     //
-    //
+    // Mod1 = Alt
     //
     if ((event->state & GDK_MOD1_MASK) == GDK_MOD1_MASK)
     {
@@ -245,8 +254,13 @@ void ViKeyManager::clear_key_buffer( unsigned char flags )
         m_count = 0;
     }
 
-    if ( flags && KeyActionBase::no_reset_cur_reg != KeyActionBase::no_reset_cur_reg )
+    if ( !BIT_ON(flags, KeyActionBase::no_reset_cur_reg))
         m_current_register = 0x00;
+}
+
+char ViKeyManager::get_current_register()
+{
+    return m_current_register;
 }
 
 void ViKeyManager::set_current_register( char reg )
@@ -254,9 +268,41 @@ void ViKeyManager::set_current_register( char reg )
     m_current_register = reg;
 }
 
+Glib::ustring ViKeyManager::get_register( char reg )
+{
+    return m_registers[reg]; 
+}
+
+void ViKeyManager::set_register( char reg, Glib::ustring text )
+{
+    m_registers[reg] = text;
+}
+
+ViMode ViKeyManager::get_mode() const
+{
+    return m_mode;
+}
+
 void ViKeyManager::set_mode( ViMode m )
 {
     m_mode = m;
 }
                            
+
+ViSubMode ViKeyManager::get_sub_mode() const
+{
+    return m_submode;
+}
+
+KeyActionBase* ViKeyManager::get_saved_action() const
+{
+    return m_action;
+}
+
+
+bool
+MotionAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+{
+    return true;
+}
 

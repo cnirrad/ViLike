@@ -3,7 +3,6 @@
 
 #include <gtkmm.h>
 
-#include "KeyAction.h"
 
 enum ViMode
 {
@@ -20,22 +19,37 @@ enum ViSubMode
     vi_wait_param
 };
 
+class ViKeyManager;
+
 /**
  * Abstract base class of all actions.
  */
 class KeyActionBase {
     public:
-        KeyActionBase() : m_flags(0) {}
-        KeyActionBase(unsigned char flags) : m_flags(flags) {}
+        KeyActionBase(ViKeyManager *vi) : 
+            m_flags(0),
+            m_vi(vi)
+        {
+        }
+        KeyActionBase(ViKeyManager *vi, unsigned char flags) : 
+            m_flags(flags),
+            m_vi(vi)
+        {
+        }
+
         virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params) = 0;
 
         unsigned char m_flags;
+        ViKeyManager *m_vi;
+
 
     enum Flags {
         await_motion = 0x01,
         await_param = 0x02,
-        no_reset_cur_reg = 0x04
+        no_reset_cur_reg = 0x04,
+        is_motion = 0x08
     };
+
 };
 
 typedef std::map<Glib::ustring, KeyActionBase*> KeyMap;
@@ -66,13 +80,25 @@ class ViKeyManager
          */
         void clear_key_buffer( unsigned char flags = 0x00 );
 
+        char get_current_register();
         void set_current_register( char reg );
+
+        Glib::ustring get_register( char reg );
+        void set_register( char reg, Glib::ustring text );
+
+        KeyActionBase* get_saved_action() const;
+
+        /**
+         * Gets the current ViMode
+         */
+        ViMode get_mode() const;
 
         /** 
          * Sets the current ViMode
          */
         void set_mode( ViMode mode );
 
+        ViSubMode get_sub_mode() const;
 
     private:
         ViMode m_mode;
@@ -91,6 +117,26 @@ class ViKeyManager
         std::map<char, Glib::ustring> m_registers;
 };
 
+
+class MotionAction : public KeyActionBase {
+    public:
+        MotionAction(ViKeyManager *vi) : 
+            KeyActionBase(vi, is_motion),
+            m_ext_sel(false)
+            
+        {
+        }
+
+        MotionAction(ViKeyManager *vi, unsigned char flags) :
+            KeyActionBase(vi, is_motion | flags)
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+
+    protected:
+        gboolean m_ext_sel;
+};
 
 
 #endif

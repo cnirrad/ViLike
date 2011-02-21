@@ -26,21 +26,27 @@ void setup_vi_keybindings(MainWindow &win)
     //
     //  Movement keys
     //
-    MovementAction *left_act = new MovementAction(GTK_MOVEMENT_LOGICAL_POSITIONS, -1);
-    MovementAction *right_act = new MovementAction(GTK_MOVEMENT_LOGICAL_POSITIONS, 1);
-    MovementAction *up_act = new MovementAction(GTK_MOVEMENT_DISPLAY_LINES, -1);
-    MovementAction *down_act = new MovementAction(GTK_MOVEMENT_DISPLAY_LINES, 1);
+    MovementAction *left_act = new MovementAction(vi, GTK_MOVEMENT_LOGICAL_POSITIONS, -1);
+    MovementAction *right_act = new MovementAction(vi, GTK_MOVEMENT_LOGICAL_POSITIONS, 1);
+    MovementAction *up_act = new MovementAction(vi, GTK_MOVEMENT_DISPLAY_LINES, -1);
+    MovementAction *down_act = new MovementAction(vi, GTK_MOVEMENT_DISPLAY_LINES, 1);
+    MovementAction *page_down_act = new MovementAction(vi, GTK_MOVEMENT_PAGES, 1);
+    MovementAction *page_up_act = new MovementAction(vi, GTK_MOVEMENT_PAGES, -1);
 
     vi->map_key( vi_normal, "h", left_act );
     vi->map_key( vi_normal, "j", down_act );
     vi->map_key( vi_normal, "k", up_act );
     vi->map_key( vi_normal, "l", right_act );
-    vi->map_key( vi_normal, "w", new MovementAction(GTK_MOVEMENT_WORDS, 1));
-    vi->map_key( vi_normal, "b", new MovementAction(GTK_MOVEMENT_WORDS, -1));
+    vi->map_key( vi_normal, "w", new MovementAction(vi, GTK_MOVEMENT_WORDS, 1));
+    vi->map_key( vi_normal, "b", new MovementAction(vi, GTK_MOVEMENT_WORDS, -1));
+    vi->map_key( vi_normal, "<C-f>", page_down_act );
+    vi->map_key( vi_normal, "<PgDn>", page_down_act );
+    vi->map_key( vi_normal, "<C-b>", page_up_act );
+    vi->map_key( vi_normal, "<PgUp>", page_up_act );
 
-    MovementAction *eol_act = new MovementAction(GTK_MOVEMENT_DISPLAY_LINE_ENDS, 1);
+    MovementAction *eol_act = new MovementAction(vi, GTK_MOVEMENT_DISPLAY_LINE_ENDS, 1);
     vi->map_key( vi_normal, "$", eol_act );
-    vi->map_key( vi_normal, "0", new MovementAction(GTK_MOVEMENT_DISPLAY_LINE_ENDS, -1));
+    vi->map_key( vi_normal, "0", new MovementAction(vi, GTK_MOVEMENT_DISPLAY_LINE_ENDS, -1));
 
     //
     //  Insert/append
@@ -54,5 +60,9 @@ void setup_vi_keybindings(MainWindow &win)
     //  Registers
     //
     vi->map_key( vi_normal, "\"", new ChooseRegistryAction( vi ));
+
+    vi->map_key( vi_normal, "y", new YankAction( vi ));
+    vi->map_key( vi_normal, "p", new PutAction( vi ));
+    vi->map_key( vi_normal, "d", new DeleteAction( vi ));
 }
 
