@@ -118,6 +118,19 @@ class CreateMarkAction : public ExecutableAction {
         virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 };
 
+class GotoLineAction : public MotionAction {
+    public:
+        GotoLineAction( ViKeyManager *vi, int hardcoded_line_number = -1 ) :
+            MotionAction( vi ),
+            m_line(hardcoded_line_number)
+        {
+        }
+
+        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+    protected:
+        int m_line;
+};
+
 class GotoMarkAction : public MotionAction {
     public:
         GotoMarkAction( ViKeyManager *vi ) :

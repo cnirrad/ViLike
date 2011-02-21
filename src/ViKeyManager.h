@@ -168,6 +168,8 @@ class ViKeyManager
 
         unsigned char get_sub_mode() const;
 
+        int get_count() const { return m_count; }
+
     private:
         ViMode m_mode;
         unsigned char m_submode;

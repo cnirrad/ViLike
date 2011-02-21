@@ -53,6 +53,8 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "0", bol_act );
 
     vi->map_key( vi_normal, "f", new FindAction( vi ));
+    vi->map_key( vi_normal, "G", new GotoLineAction( vi ));
+    vi->map_key( vi_normal, "gg", new GotoLineAction( vi, 1 ));
 
     //
     //  Insert/append
@@ -67,7 +69,7 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "c", new ChangeAction( vi ));
 
     //
-    //  Registers
+    //  Registers/yank/put/delete
     //
     vi->map_key( vi_normal, "\"", new ChooseRegistryAction( vi ));
     vi->map_key( vi_normal, "y", new YankAction( vi ));

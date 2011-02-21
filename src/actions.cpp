@@ -220,6 +220,36 @@ GotoMarkAction::perform_motion( Gtk::Widget *w, int count_modifier, Glib::ustrin
 
 }
 
+void
+GotoLineAction::perform_motion( Gtk::Widget *w, int line, Glib::ustring &params ) 
+{
+    if (m_line != -1)
+        line = m_line;
+
+    if (is_text_widget(w))
+    {
+        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
+
+        //
+        //  The past in line will be 1 if no number was given, but Vim 
+        //  will goto the end of the buffer when no number is given.
+        //  The count from the Vi Key manager will still be zero if
+        //  not count was given.
+        //
+        if (m_line == -1 && m_vi->get_count() == 0) 
+        {
+            line = buffer->get_line_count();
+        }
+
+        Gtk::TextBuffer::iterator iter = 
+                     buffer->get_iter_at_line( line - 1 );
+
+        set_cursor( iter, m_ext_sel );
+    }
+
+}
+
 CompoundAction::CompoundAction( ViKeyManager *vi, ... ) :
     ExecutableAction( vi )
 {
