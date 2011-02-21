@@ -8,7 +8,7 @@ class MovementAction : public MotionAction {
     public:
         MovementAction( ViKeyManager *vi, GtkMovementStep step, gint count );
 
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &param);
 
     protected:
         GtkMovementStep m_step;
@@ -80,6 +80,57 @@ class DeleteAction : public KeyActionBase {
 
         virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 
+};
+
+class ChangeAction : public KeyActionBase {
+    public:
+        ChangeAction( ViKeyManager *vi ) : 
+            KeyActionBase( vi, await_motion )
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+
+};
+
+class CreateMarkAction : public KeyActionBase {
+    public:
+        CreateMarkAction( ViKeyManager *vi ) :
+            KeyActionBase( vi, await_param )
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+};
+
+class GotoMarkAction : public MotionAction {
+    public:
+        GotoMarkAction( ViKeyManager *vi ) :
+            MotionAction( vi, await_param )
+        {
+        }
+
+        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+};
+
+class CompoundAction : public KeyActionBase {
+    public:
+        CompoundAction( ViKeyManager *vi, ... );
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+
+    protected:
+        std::list<KeyActionBase *> m_actions;
+};
+
+class FindAction : public KeyActionBase {
+    public:
+        FindAction( ViKeyManager *vi ) :
+            KeyActionBase( vi, await_param )
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 };
 
 #endif

@@ -14,9 +14,9 @@ enum ViMode
 
 enum ViSubMode
 {
-    vi_sub_none,
-    vi_wait_motion,
-    vi_wait_param
+    vi_sub_none = 0x00,
+    vi_wait_motion = 0x01,
+    vi_wait_param = 0x02
 };
 
 class ViKeyManager;
@@ -98,11 +98,11 @@ class ViKeyManager
          */
         void set_mode( ViMode mode );
 
-        ViSubMode get_sub_mode() const;
+        unsigned char get_sub_mode() const;
 
     private:
         ViMode m_mode;
-        ViSubMode m_submode;
+        unsigned char m_submode;
         Gtk::Window *m_window;
 
         Glib::ustring m_key;
@@ -115,6 +115,7 @@ class ViKeyManager
         KeyMap m_insertMap;
 
         std::map<char, Glib::ustring> m_registers;
+        std::stack<KeyActionBase *> m_action_stack;
 };
 
 
@@ -132,7 +133,9 @@ class MotionAction : public KeyActionBase {
         {
         }
 
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+        bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+
+        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &param) = 0;
 
     protected:
         gboolean m_ext_sel;

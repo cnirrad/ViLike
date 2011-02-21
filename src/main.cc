@@ -43,10 +43,14 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "<PgDn>", page_down_act );
     vi->map_key( vi_normal, "<C-b>", page_up_act );
     vi->map_key( vi_normal, "<PgUp>", page_up_act );
+    vi->map_key( vi_normal, "<BS>", left_act );
 
+    MovementAction *bol_act = new MovementAction(vi, GTK_MOVEMENT_DISPLAY_LINE_ENDS, -1);
     MovementAction *eol_act = new MovementAction(vi, GTK_MOVEMENT_DISPLAY_LINE_ENDS, 1);
+    vi->map_key( vi_normal, "<Home>", bol_act );
+    vi->map_key( vi_normal, "<End>", eol_act );
     vi->map_key( vi_normal, "$", eol_act );
-    vi->map_key( vi_normal, "0", new MovementAction(vi, GTK_MOVEMENT_DISPLAY_LINE_ENDS, -1));
+    vi->map_key( vi_normal, "0", bol_act );
 
     //
     //  Insert/append
@@ -55,14 +59,23 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "a", new ModeAction( left_act, vi, vi_insert ));
     vi->map_key( vi_normal, "i", new ModeAction(vi, vi_insert));
     vi->map_key( vi_normal, "R", new ReplaceAction(vi));
+    vi->map_key( vi_normal, "O", new ModeAction( up_act, vi, vi_insert ));
+    vi->map_key( vi_normal, "o", new ModeAction( down_act, vi, vi_insert ));
+
+    vi->map_key( vi_normal, "c", new ChangeAction( vi ));
 
     //
     //  Registers
     //
     vi->map_key( vi_normal, "\"", new ChooseRegistryAction( vi ));
-
     vi->map_key( vi_normal, "y", new YankAction( vi ));
     vi->map_key( vi_normal, "p", new PutAction( vi ));
     vi->map_key( vi_normal, "d", new DeleteAction( vi ));
+
+    //
+    //  Marks
+    //
+    vi->map_key( vi_normal, "m", new CreateMarkAction( vi ));
+    vi->map_key( vi_normal, "'", new GotoMarkAction( vi ));
 }
 

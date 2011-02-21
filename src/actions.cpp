@@ -12,22 +12,9 @@ MovementAction::MovementAction( ViKeyManager *vi, GtkMovementStep step, gint cou
 }
 
 
-bool
-MovementAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+void
+MovementAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
-    //
-    //  If waiting for a motion, then extend selection will be
-    //  true. The selection is how the command waiting for the 
-    //  motion will know what to act upon.
-    //
-    if (m_vi->get_sub_mode() == vi_wait_motion) 
-    {
-        m_ext_sel = true;
-    }
-    else
-    {
-        m_ext_sel = false;
-    }
 
     gboolean ret_val;
     gtk_signal_emit_by_name( (GtkObject*)w->gobj(), 
@@ -37,29 +24,7 @@ MovementAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &param
                              m_ext_sel,
                              &ret_val );
 
-    if (m_vi->get_sub_mode() == vi_wait_motion) 
-    {
-        KeyActionBase *action = m_vi->get_saved_action();
-        if (action)
-        {
-            action->execute(w, count_modifier, params); 
-        }
-    }
-
-    //
-    // If not in visual mode, then the extend selection was to
-    // allow other commands to know the range to act on. Remove the 
-    // selection now.
-    //
-    if (m_ext_sel, m_vi->get_mode() != vi_visual && is_text_widget(w))
-    {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
-        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
-
-        Gtk::TextBuffer::iterator it = get_cursor_iter( buffer ); 
-        buffer->place_cursor(it);
-    } 
-    return ret_val;
+    return;
 }
 
 ModeAction::ModeAction( ViKeyManager *vi, ViMode mode ) :
@@ -109,27 +74,40 @@ ChooseRegistryAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring
     return true;
 }
 
-
-bool
-YankAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
+//
+//  Helper function for yank and delete
+//
+Glib::ustring yank(ViKeyManager *vi, Gtk::Widget *w, bool del = false)
 {
     Glib::ustring text;
     if (is_text_widget(w))
     {
         Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w);
-        Glib::RefPtr<const Gtk::TextBuffer> buffer = view->get_buffer();
+        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
         Gtk::TextIter start;
         Gtk::TextIter end;
 
         buffer->get_selection_bounds(start, end);
         text = buffer->get_text(start, end);
+
+        char r = vi->get_current_register();
+
+        vi->set_register(r, text);
+        g_print("Set %c with %s\n", r, text.data());
+
+        if (del)
+        {
+            buffer->erase(start, end);
+        }
     }
+    return text;
+}
 
-    char r = m_vi->get_current_register();
-
-    m_vi->set_register(r, text);
-    g_print("Set %c with %s\n", r, text.data());
+bool
+YankAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
+{
+    yank(m_vi, w);
     return true;
 }
 
@@ -153,26 +131,113 @@ PutAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
 bool
 DeleteAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
 {
-    Glib::ustring text;
-    if (is_text_widget(w))
-    {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w);
-        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
-
-        Gtk::TextIter start;
-        Gtk::TextIter end;
-
-        buffer->get_selection_bounds(start, end);
-        text = buffer->get_text(start, end);
-
-        char r = m_vi->get_current_register();
-        m_vi->set_register(r, text);
-
-        g_print("Set %c with %s. Now deleting.\n", r, text.data());
-
-        buffer->erase(start, end);
-    }
+    yank(m_vi, w, true);
 
     return true;
+}
+
+bool
+ChangeAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
+{
+    yank(m_vi, w, true); 
+    m_vi->set_mode(vi_insert);
+
+    return true;
+}
+
+bool
+CreateMarkAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params ) 
+{
+    if (is_text_widget(w))
+    {
+        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
+
+        Gtk::TextBuffer::iterator it = get_cursor_iter( buffer ); 
+
+        if ( params == "" )
+        {
+            return false;
+        }
+
+        buffer->create_mark( params, it );
+    }
+}
+
+void
+GotoMarkAction::perform_motion( Gtk::Widget *w, int count_modifier, Glib::ustring &params ) 
+{
+    if ( params == "" )
+    {
+        return;
+    }
+
+    if (is_text_widget(w))
+    {
+        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
+
+        Glib::RefPtr< Gtk::TextBuffer::Mark > mark = 
+                                        buffer->get_mark( params );
+
+        if ( mark == NULL )
+        {
+            g_print( "Mark %s not present.\n", params.data() );
+            return;
+        }
+
+        Gtk::TextBuffer::iterator iter = 
+                        buffer->get_iter_at_mark( mark );
+
+        if ( m_ext_sel )
+        {
+            Glib::RefPtr< TextBuffer::Mark > sel_bound =
+                                buffer->get_selection_bound();
+            buffer->move_mark( sel_bound, iter );
+        }
+        else 
+        {
+            buffer->place_cursor( iter );
+        }
+    }
+
+}
+
+CompoundAction::CompoundAction( ViKeyManager *vi, ... ) :
+    KeyActionBase( vi )
+{
+    va_list vl;
+    va_start(vl, vi);
+
+    KeyActionBase *action = va_arg(vl, KeyActionBase*);
+    m_actions.push_back(action);
+
+    va_end(vl);
+}
+
+bool 
+CompoundAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+{
+    std::list<KeyActionBase*>::iterator it; 
+
+    for ( it = m_actions.begin(); it != m_actions.end(); it++ )
+    {
+        ((KeyActionBase*)*it)->execute(w, count_modifier, params);
+    }
+}
+
+bool 
+FindAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+{
+    if (is_text_widget(w))
+    {
+        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
+        
+        Gtk::TextBuffer::iterator start = get_cursor_iter( buffer ); 
+
+        //Glib::ustring text = buffer->get_text( start, end );
+
+    }
 }
 

@@ -101,7 +101,7 @@ bool ViKeyManager::on_key_press( GdkEventKey *event )
     //
     //  Normal Mode. 
     //
-    if (m_submode == vi_wait_param && m_action != NULL)
+    if (BIT_ON(m_submode, vi_wait_param) && m_action != NULL)
     {
         m_params = m_params + str;
         m_action->execute( w, m_count, m_params );
@@ -122,7 +122,6 @@ bool ViKeyManager::on_key_press( GdkEventKey *event )
             int num = event->keyval - GDK_0;
             m_count = (m_count * 10) + num;
             m_key = "";
-            g_print("Count = %i\n", m_count);
             return true;
         }
     }
@@ -132,7 +131,7 @@ bool ViKeyManager::on_key_press( GdkEventKey *event )
     {
         if (BIT_ON(action->m_flags, KeyActionBase::await_param))
         {
-            m_submode = vi_wait_param; 
+            m_submode = m_submode | vi_wait_param; 
             m_action = action; 
             return true;
         }
@@ -204,6 +203,10 @@ Glib::ustring ViKeyManager::key_to_str( GdkEventKey *event )
     else if (event->keyval == GDK_Page_Down)
     {
         key_str = "PgDn";
+    }
+    else if (event->keyval == GDK_Home)
+    {
+        key_str = "Home";
     }
     else if (event->keyval == GDK_End)
     {
@@ -289,7 +292,7 @@ void ViKeyManager::set_mode( ViMode m )
 }
                            
 
-ViSubMode ViKeyManager::get_sub_mode() const
+unsigned char ViKeyManager::get_sub_mode() const
 {
     return m_submode;
 }
@@ -303,6 +306,45 @@ KeyActionBase* ViKeyManager::get_saved_action() const
 bool
 MotionAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
+
+    //
+    //  If waiting for a motion, then extend selection will be
+    //  true. The selection is how the command waiting for the 
+    //  motion will know what to act upon.
+    //
+    if (BIT_ON(m_vi->get_sub_mode(), vi_wait_motion)) 
+    {
+        m_ext_sel = true;
+    }
+    else
+    {
+        m_ext_sel = false;
+    }
+
+    perform_motion(w, count_modifier, params);
+
+    if (BIT_ON(m_vi->get_sub_mode(), vi_wait_motion))
+    {
+        KeyActionBase *action = m_vi->get_saved_action();
+        if (action)
+        {
+            action->execute(w, count_modifier, params); 
+        }
+    }
+
+    //
+    // If not in visual mode, then the extend selection was to
+    // allow other commands to know the range to act on. Remove the 
+    // selection now.
+    //
+    if (m_ext_sel, m_vi->get_mode() != vi_visual && is_text_widget(w))
+    {
+        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
+
+        Gtk::TextBuffer::iterator it = get_cursor_iter( buffer ); 
+        buffer->place_cursor(it);
+    } 
     return true;
 }
 
