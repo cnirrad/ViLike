@@ -34,9 +34,13 @@ void setup_vi_keybindings(MainWindow &win)
     MovementAction *page_up_act = new MovementAction(vi, GTK_MOVEMENT_PAGES, -1);
 
     vi->map_key( vi_normal, "h", left_act );
+    vi->map_key( vi_normal, "<Left>", left_act );
     vi->map_key( vi_normal, "j", down_act );
+    vi->map_key( vi_normal, "<Down>", down_act );
     vi->map_key( vi_normal, "k", up_act );
+    vi->map_key( vi_normal, "<Up>", up_act );
     vi->map_key( vi_normal, "l", right_act );
+    vi->map_key( vi_normal, "<Right>", right_act );
     vi->map_key( vi_normal, "w", new MovementAction(vi, GTK_MOVEMENT_WORDS, 1));
     vi->map_key( vi_normal, "b", new MovementAction(vi, GTK_MOVEMENT_WORDS, -1));
     vi->map_key( vi_normal, "^", new MovementAction(vi, GTK_MOVEMENT_PARAGRAPHS, -1));
@@ -66,7 +70,7 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "R", new ReplaceAction(vi));
     vi->map_key( vi_normal, "O", new ModeAction( up_act, vi, vi_insert ));
     vi->map_key( vi_normal, "o", new ModeAction( down_act, vi, vi_insert ));
-
+    vi->map_key( vi_normal, "V", new ModeAction( vi, vi_visual ));
     vi->map_key( vi_normal, "c", new ChangeAction( vi ));
 
     //

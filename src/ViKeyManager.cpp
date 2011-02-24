@@ -209,6 +209,22 @@ Glib::ustring ViKeyManager::key_to_str( GdkEventKey *event )
     {
         key_str = "End";
     }
+    else if (event->keyval == GDK_Up)
+    {
+        key_str = "Up";
+    }
+    else if (event->keyval == GDK_Down)
+    {
+        key_str = "Down";
+    }
+    else if (event->keyval == GDK_Left)
+    {
+        key_str = "Left";
+    }
+    else if (event->keyval == GDK_Right)
+    {
+        key_str = "Right";
+    }
     else if (event->keyval >= GDK_F1 && event->keyval <= GDK_F35)
     {
         int num = event->keyval - (GDK_F1 - 1);
@@ -349,6 +365,9 @@ ViActionContext::reset()
 bool
 MotionAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
+    if (m_vi->get_mode() == vi_visual)
+        m_ext_sel = true;
+
     perform_motion(w, count_modifier, params);
     
     if (is_text_widget(w))
