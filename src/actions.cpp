@@ -1,5 +1,7 @@
 
 #include <gtkmm.h>
+#include <gtksourceviewmm/sourceview.h>
+
 #include "actions.h"
 #include "utils.h"
 
@@ -49,8 +51,9 @@ ModeAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
     {
         m_move_act->execute(w, count_modifier, params);
     }
-    m_vi->set_mode(m_mode);
+    m_vi->set_mode(m_mode, w);
     m_vi->clear_key_buffer();
+
     return true;
 }
 
@@ -241,11 +244,7 @@ GotoLineAction::perform_motion( Gtk::Widget *w, int line, Glib::ustring &params 
         {
             line = buffer->get_line_count();
         }
-
-        Gtk::TextBuffer::iterator iter = 
-                     buffer->get_iter_at_line( line - 1 );
-
-        set_cursor( iter, m_ext_sel );
+        set_cursor_at_line( buffer, line, m_ext_sel );
     }
 
 }
@@ -321,3 +320,39 @@ FindAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &pa
         }
     }
 }
+
+
+bool 
+UndoAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+{
+    if ( is_text_widget( w ) )
+    { 
+        gtksourceview::SourceView *view = 
+            dynamic_cast<gtksourceview::SourceView*>(w); 
+
+        Glib::RefPtr< gtksourceview::SourceBuffer > buffer = 
+            view->get_source_buffer();
+
+        if ( buffer->can_undo() )
+            buffer->undo();
+    }
+    return true;
+}
+
+bool 
+RedoAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+{
+    if ( is_text_widget( w ) )
+    { 
+        gtksourceview::SourceView *view = 
+            dynamic_cast<gtksourceview::SourceView*>(w); 
+
+        Glib::RefPtr< gtksourceview::SourceBuffer > buffer = 
+            view->get_source_buffer();
+
+        if ( buffer->can_undo() )
+            buffer->redo();
+    }
+    return true;
+}
+

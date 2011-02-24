@@ -161,4 +161,24 @@ class FindAction : public MotionAction {
         virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 };
 
+class UndoAction : public ExecutableAction {
+    public:
+        UndoAction( ViKeyManager *vi ) :
+            ExecutableAction( vi )
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+};
+
+class RedoAction : public ExecutableAction {
+    public:
+        RedoAction( ViKeyManager *vi ) :
+            ExecutableAction( vi )
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+};
+
 #endif

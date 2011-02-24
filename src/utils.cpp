@@ -12,7 +12,16 @@ bool is_text_widget( Gtk::Widget *w )
    return false;
 }
 
+bool is_source_view( Gtk::Widget *w )
+{
+   const gchar *type = G_OBJECT_TYPE_NAME(w->gobj());
 
+   if ( strcmp(type, "gtkmm__GtkSourceView") == 0 ) 
+   {
+        return true;
+   }
+   return false;
+}
 
 Gtk::TextBuffer::iterator 
 get_cursor_iter( Glib::RefPtr<Gtk::TextBuffer> buffer )
@@ -36,4 +45,12 @@ void set_cursor( Gtk::TextBuffer::iterator location, bool ext_sel )
         {
             buffer->place_cursor( location );
         }
+}
+
+void set_cursor_at_line( Glib::RefPtr<Gtk::TextBuffer> buffer, int line, bool ext_sel )
+{
+    Gtk::TextBuffer::iterator iter = 
+                 buffer->get_iter_at_line( line - 1 );
+
+    set_cursor( iter, ext_sel );
 }

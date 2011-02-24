@@ -164,7 +164,7 @@ class ViKeyManager
         /** 
          * Sets the current ViMode
          */
-        void set_mode( ViMode mode );
+        void set_mode( ViMode mode, Gtk::Widget *w = 0);
 
         unsigned char get_sub_mode() const;
 
@@ -184,6 +184,7 @@ class ViKeyManager
         KeyMap m_insertMap;
 
         std::map<char, Glib::ustring> m_registers;
+
 };
 
 

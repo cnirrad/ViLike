@@ -25,4 +25,6 @@ get_cursor_iter( Glib::RefPtr<Gtk::TextBuffer> buffer );
  */
 void set_cursor( Gtk::TextBuffer::iterator location, bool ext_sel );
 
+void set_cursor_at_line( Glib::RefPtr<Gtk::TextBuffer> buffer, int line, bool ext_sel );
+
 #endif

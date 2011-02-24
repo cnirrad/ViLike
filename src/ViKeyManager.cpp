@@ -58,22 +58,22 @@ bool ViKeyManager::map_key(ViMode mode, const char *key, ExecutableAction *actio
 
 bool ViKeyManager::on_key_press( GdkEventKey *event )
 {
-    //
-    //  Escape key cannot be overridden
-    //
-    if (event->keyval == GDK_Escape)
-    {
-        m_mode = vi_normal;
-        clear_key_buffer();
-        return true;
-    }
-
     if (IS_MODIFIER_KEY( event->keyval ))
     {
         return true;
     }
 
     Gtk::Widget *w = m_window->get_focus();
+
+    //
+    //  Escape key cannot be overridden
+    //
+    if (event->keyval == GDK_Escape)
+    {
+        set_mode(vi_normal, w);
+        clear_key_buffer();
+        return true;
+    }
 
     Glib::ustring str = key_to_str( event );
 
@@ -281,10 +281,23 @@ ViMode ViKeyManager::get_mode() const
 {
     return m_mode;
 }
-
-void ViKeyManager::set_mode( ViMode m )
+// this is a test
+void ViKeyManager::set_mode( ViMode m, Gtk::Widget *w )
 {
     m_mode = m;
+
+    if (w && is_text_widget(w))
+    {
+        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w);
+        if (m_mode == vi_insert )
+        {
+            view->set_overwrite(false); 
+        }
+        else 
+        {
+            view->set_overwrite(true);
+        }
+    }
 }
 
 unsigned char ViKeyManager::get_sub_mode() const
@@ -337,6 +350,12 @@ bool
 MotionAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
     perform_motion(w, count_modifier, params);
+    
+    if (is_text_widget(w))
+    {
+        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w);
+        view->set_cursor_visible(true);
+    }
 }
 
 bool

@@ -39,6 +39,7 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "l", right_act );
     vi->map_key( vi_normal, "w", new MovementAction(vi, GTK_MOVEMENT_WORDS, 1));
     vi->map_key( vi_normal, "b", new MovementAction(vi, GTK_MOVEMENT_WORDS, -1));
+    vi->map_key( vi_normal, "^", new MovementAction(vi, GTK_MOVEMENT_PARAGRAPHS, -1));
     vi->map_key( vi_normal, "<C-f>", page_down_act );
     vi->map_key( vi_normal, "<PgDn>", page_down_act );
     vi->map_key( vi_normal, "<C-b>", page_up_act );
@@ -83,5 +84,11 @@ void setup_vi_keybindings(MainWindow &win)
     //
     vi->map_key( vi_normal, "m", new CreateMarkAction( vi ));
     vi->map_key( vi_normal, "'", new GotoMarkAction( vi ));
+
+    //
+    //  Undo/Redo
+    //
+    vi->map_key( vi_normal, "u", new UndoAction( vi ));
+    vi->map_key( vi_normal, "<C-r>", new RedoAction( vi ));
 }
 
