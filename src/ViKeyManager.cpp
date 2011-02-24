@@ -373,7 +373,8 @@ MotionAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
     if (is_text_widget(w))
     {
         Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w);
-        view->set_cursor_visible(true);
+        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
+        view->scroll_to( buffer->get_insert() );
     }
 }
 
