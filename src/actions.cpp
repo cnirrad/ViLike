@@ -139,7 +139,6 @@ bool
 DeleteAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
 {
     yank(m_vi, w, true);
-    g_print("Deleted text.");
     return true;
 }
 
@@ -154,9 +153,9 @@ DeleteOneAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &par
         Gtk::TextBuffer::iterator end = get_cursor_iter( buffer ); 
 
         if (m_before)
-            end.backward_cursor_position();
+            end.backward_cursor_positions(count_modifier);
         else
-            end.forward_cursor_position();
+            end.forward_cursor_positions(count_modifier);
 
         set_cursor( end, true );
         yank(m_vi, w, true);
@@ -342,7 +341,7 @@ UndoAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 bool 
 RedoAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
-    if ( is_text_widget( w ) )
+    if ( is_source_view( w ) )
     { 
         gtksourceview::SourceView *view = 
             dynamic_cast<gtksourceview::SourceView*>(w); 
@@ -354,5 +353,98 @@ RedoAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
             buffer->redo();
     }
     return true;
+}
+
+void
+MatchBracketAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params) 
+{
+    if ( !is_text_widget( w ) )
+    { 
+        return;
+    }
+
+    gtksourceview::SourceView *view = 
+        dynamic_cast<gtksourceview::SourceView*>(w); 
+    Glib::RefPtr< gtksourceview::SourceBuffer > buffer = 
+        view->get_source_buffer();
+    Gtk::TextBuffer::iterator iter = get_cursor_iter( buffer ); 
+    
+    gchar ch = iter.get_char();
+
+    struct match_chars
+    {
+        gchar begin;
+        gchar end;
+    };
+    const match_chars map[] = { { '{', '}' },
+                                { '(', ')' },
+                                { '[', ']' },
+                                { 0, 0 } };
+    const int map_lgth = 3;
+
+    gchar find = '\0';
+    match_chars chars = {0, 0};
+    bool forward;
+    Gtk::TextBuffer::iterator end_iter;
+    
+
+    for (int i = 0; i < map_lgth; ++i)
+    {
+        match_chars mc = map[i];
+        if ( ch == mc.begin )
+        {
+            forward = true;
+            chars = mc;
+            end_iter = buffer->end();
+        }
+        else if ( ch == mc.end )
+        {
+            forward = false;
+            chars.begin = mc.end;
+            chars.end = mc.begin;
+            end_iter = buffer->begin();
+        }
+    }
+
+    if (chars.begin == '\0')
+    {
+        g_print("Not a supported bracket: %c\n", ch);
+        return;
+    }
+
+    g_print("Matching %c with %c.\n", chars.begin, chars.end);
+
+    int level = 0;
+
+    while (iter != end_iter)
+    {
+        if (forward)
+            iter.forward_char();
+        else
+            iter.backward_char();
+
+        ch = iter.get_char();
+
+        if (ch == chars.end)
+        {
+            g_print( "%c == %c / level = %i.  ", ch, chars.end, level);
+            if (level == 0)
+            {
+                set_cursor(iter, m_ext_sel);
+                return;
+            }
+            else
+            {
+                g_print("level--\n");
+                level--;
+            }
+        }
+        else if (ch == chars.begin)
+        {
+            g_print("level++\n");
+            level++;
+        }
+    }
+    g_print("Match not found.\n");
 }
 

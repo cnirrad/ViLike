@@ -60,6 +60,7 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "f", new FindAction( vi ));
     vi->map_key( vi_normal, "G", new GotoLineAction( vi ));
     vi->map_key( vi_normal, "gg", new GotoLineAction( vi, 1 ));
+    vi->map_key( vi_normal, "%", new MatchBracketAction( vi ));
 
     //
     //  Insert/append

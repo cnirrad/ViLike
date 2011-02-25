@@ -28,7 +28,8 @@ class MainWindow : public Gtk::Window
 
         gtksourceview::SourceView m_sourceView; 
         Gtk::ScrolledWindow m_scrollView;
-//        Gtk::TextView m_sourceView;
+        Gtk::Statusbar m_statusBar;
+        Gtk::VBox m_vbox;
     
         ViKeyManager *vi;
 

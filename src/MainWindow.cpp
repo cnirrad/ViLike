@@ -13,14 +13,13 @@ MainWindow::MainWindow()
     set_border_width(4);
     set_default_size(500, 500);
 
-    m_sourceView.set_name("Test");
-    m_sourceView.set_source_buffer(
-            gtksourceview::SourceBuffer::create(Glib::RefPtr<Gtk::TextTagTable>()) );
+    Glib::RefPtr< gtksourceview::SourceBuffer > buffer = 
+            gtksourceview::SourceBuffer::create(Glib::RefPtr<Gtk::TextTagTable>());
+
+    m_sourceView.set_source_buffer( buffer );
     m_sourceView.set_show_line_numbers( true );
     m_sourceView.set_overwrite( true );
 
-    Glib::RefPtr< gtksourceview::SourceBuffer > buffer = 
-                            m_sourceView.get_source_buffer();
     buffer->set_highlight_matching_brackets(true);
     buffer->set_max_undo_levels(100);
 
@@ -34,8 +33,10 @@ MainWindow::MainWindow()
         g_print("Error: Couldn't load file.\n");
     }
 
+    buffer->begin_not_undoable_action();
     buffer->set_text(contents);
     set_cursor_at_line( buffer, 1, false );
+    buffer->end_not_undoable_action();
 
     m_scrollView.add(m_sourceView);
     m_scrollView.set_policy(Gtk::POLICY_AUTOMATIC, 
@@ -43,7 +44,11 @@ MainWindow::MainWindow()
 
     vi = new ViKeyManager(this);
 
-    add(m_scrollView);
+    add(m_vbox);
+
+    m_vbox.pack_start(m_scrollView, true, true);
+    m_vbox.pack_end(m_statusBar, false, false);
+    
     show_all_children();
 }
 

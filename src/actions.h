@@ -181,4 +181,14 @@ class RedoAction : public ExecutableAction {
         virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 };
 
+class MatchBracketAction : public MotionAction {
+    public:
+        MatchBracketAction( ViKeyManager *vi ) :
+            MotionAction( vi )
+        {
+        }
+
+        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+};
+
 #endif

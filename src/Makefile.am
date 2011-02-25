@@ -1,5 +1,5 @@
 
-AM_CFLAGS = -Wall -g
+AM_CFLAGS = -Wall -g -O0
 
 bin_PROGRAMS = sourcerer
 

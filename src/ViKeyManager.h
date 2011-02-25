@@ -12,13 +12,6 @@ enum ViMode
     vi_visual
 };
 
-enum ViSubMode
-{
-    vi_sub_none = 0x00,
-    vi_wait_motion = 0x01,
-    vi_wait_param = 0x02
-};
-
 class ViKeyManager;
 class ViActionContext;
 
@@ -166,13 +159,10 @@ class ViKeyManager
          */
         void set_mode( ViMode mode, Gtk::Widget *w = 0);
 
-        unsigned char get_sub_mode() const;
-
         int get_count() const { return m_count; }
 
     private:
         ViMode m_mode;
-        unsigned char m_submode;
         Gtk::Window *m_window;
 
         Glib::ustring m_key;
@@ -184,7 +174,6 @@ class ViKeyManager
         KeyMap m_insertMap;
 
         std::map<char, Glib::ustring> m_registers;
-
 };
 
 

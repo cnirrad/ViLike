@@ -264,7 +264,6 @@ void ViKeyManager::clear_key_buffer( unsigned char flags )
 
     if (!wait_to_execute_action( flags ))
     {
-        m_submode = vi_sub_none;
         m_context->reset();
         m_count = 0;
     }
@@ -297,7 +296,7 @@ ViMode ViKeyManager::get_mode() const
 {
     return m_mode;
 }
-// this is a test
+
 void ViKeyManager::set_mode( ViMode m, Gtk::Widget *w )
 {
     m_mode = m;
@@ -315,12 +314,6 @@ void ViKeyManager::set_mode( ViMode m, Gtk::Widget *w )
         }
     }
 }
-
-unsigned char ViKeyManager::get_sub_mode() const
-{
-    return m_submode;
-}
-
 
 //
 //  VI Action Context

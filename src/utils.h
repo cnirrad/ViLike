@@ -11,6 +11,7 @@
  */
 bool is_text_widget( Gtk::Widget *w );
 
+bool is_source_view( Gtk::Widget *w );
 
 /**
  *  Gets an iterator for the current cursor position.
