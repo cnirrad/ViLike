@@ -248,27 +248,24 @@ GotoLineAction::perform_motion( Gtk::Widget *w, int line, Glib::ustring &params 
 
 }
 
-CompoundAction::CompoundAction( ViKeyManager *vi, ... ) :
-    ExecutableAction( vi )
+bool 
+KeySequenceAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
-    va_list vl;
-    va_start(vl, vi);
-
-    ExecutableAction *action = va_arg(vl, ExecutableAction*);
-    m_actions.push_back(action);
-
-    va_end(vl);
+    return m_vi->execute( m_keys );
 }
 
-bool 
-CompoundAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+bool
+InsertLineAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params) 
 {
-    std::list<ExecutableAction*>::iterator it; 
-
-    for ( it = m_actions.begin(); it != m_actions.end(); it++ )
+    if (is_text_widget(w))
     {
-        ((ExecutableAction*)*it)->execute(w, count_modifier, params);
+        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
+        
+        Glib::ustring eol("\n");
+        buffer->insert_at_cursor(eol);
     }
+    return true;
 }
 
 void 
@@ -416,32 +413,30 @@ MatchBracketAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ust
 
     int level = 0;
 
+#define ITER_NEXT(void) if (forward) iter.forward_char(); else iter.backward_char();
+
     while (iter != end_iter)
     {
-        if (forward)
-            iter.forward_char();
-        else
-            iter.backward_char();
+        ITER_NEXT()
 
         ch = iter.get_char();
 
         if (ch == chars.end)
         {
-            g_print( "%c == %c / level = %i.  ", ch, chars.end, level);
             if (level == 0)
             {
+                if (m_ext_sel)
+                    ITER_NEXT()     // make sure the ending bracket is selected too
                 set_cursor(iter, m_ext_sel);
                 return;
             }
             else
             {
-                g_print("level--\n");
                 level--;
             }
         }
         else if (ch == chars.begin)
         {
-            g_print("level++\n");
             level++;
         }
     }

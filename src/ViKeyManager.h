@@ -116,6 +116,30 @@ class ViActionContext {
 typedef std::map<Glib::ustring, ExecutableAction*> KeyMap;
 typedef std::pair<Glib::ustring, ExecutableAction*> KeyMapPair;
 
+struct KeyMapping
+{
+    guint keyval;
+    const char * string;
+};
+
+const KeyMapping vi_key_map[] = {
+    { GDK_Escape,           "Esc" },
+    { GDK_BackSpace,        "BS" },
+    { GDK_Tab,              "Tab" },
+    { GDK_Linefeed,         "LF" },
+    { GDK_Return,           "CR" },
+    { GDK_space,            "Space" },
+    { GDK_Page_Up,          "PgUp" },
+    { GDK_Page_Down,        "PgDn" },
+    { GDK_Home,             "Home" },
+    { GDK_End,              "End" },
+    { GDK_Up,               "Up" },
+    { GDK_Down,             "Down" },
+    { GDK_Left,             "Left" },
+    { GDK_Right,            "Right" }
+};
+const unsigned int vi_key_map_lgth = sizeof( vi_key_map ) / sizeof( vi_key_map[0] );
+
 class ViKeyManager
 {
     public:
@@ -130,10 +154,14 @@ class ViKeyManager
          */
         virtual bool map_key(ViMode mode, const char *key, ExecutableAction *cb);
 
+        virtual bool execute( Glib::ustring &cmds );
+        virtual bool execute( Glib::ustring &cmds, ViMode mode );
+
         /**
          * Translates a keypress.
          */
         virtual Glib::ustring key_to_str(GdkEventKey *event);
+        virtual GdkEventKey* str_to_key(const Glib::ustring &str);
 
         /**
          * Resets the key sequence buffer (m_key) to blank and the 

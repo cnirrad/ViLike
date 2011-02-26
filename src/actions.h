@@ -141,14 +141,28 @@ class GotoMarkAction : public MotionAction {
         virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 };
 
-class CompoundAction : public ExecutableAction {
+class KeySequenceAction : public ExecutableAction {
     public:
-        CompoundAction( ViKeyManager *vi, ... );
+        KeySequenceAction( ViKeyManager *vi, const Glib::ustring &keys ) :
+            ExecutableAction( vi ),
+            m_keys( keys )
+        {
+        }
 
         virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 
     protected:
-        std::list<ExecutableAction *> m_actions;
+        Glib::ustring m_keys;
+};
+
+class InsertLineAction : public ExecutableAction {
+    public:
+        InsertLineAction( ViKeyManager *vi ) :
+            ExecutableAction( vi )
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 };
 
 class FindAction : public MotionAction {

@@ -69,8 +69,8 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "a", new ModeAction( left_act, vi, vi_insert ));
     vi->map_key( vi_normal, "i", new ModeAction(vi, vi_insert));
     vi->map_key( vi_normal, "R", new ReplaceAction(vi));
-    vi->map_key( vi_normal, "O", new ModeAction( up_act, vi, vi_insert ));
-    vi->map_key( vi_normal, "o", new ModeAction( down_act, vi, vi_insert ));
+    vi->map_key( vi_normal, "O", new KeySequenceAction( vi, "0i<CR><Esc>ki" ));
+    vi->map_key( vi_normal, "o", new KeySequenceAction( vi, "$i<CR><Esc>i" ));
     vi->map_key( vi_normal, "V", new ModeAction( vi, vi_visual ));
     vi->map_key( vi_normal, "c", new ChangeAction( vi ));
 

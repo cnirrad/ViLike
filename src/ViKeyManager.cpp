@@ -55,6 +55,50 @@ bool ViKeyManager::map_key(ViMode mode, const char *key, ExecutableAction *actio
     return true;
 }
 
+bool ViKeyManager::execute( Glib::ustring &cmds )
+{
+    return execute( cmds, m_mode );    
+}
+
+bool ViKeyManager::execute( Glib::ustring &cmds, ViMode mode )
+{
+    clear_key_buffer();
+
+    GdkEventKey* event;
+
+    for (int idx = 0; idx < cmds.length(); ++idx)
+    {
+        gchar ch = cmds[idx];
+
+        if ( ch == '<' )
+        {
+            //
+            //  Is this just the '<' key, or is it part of a special key?
+            //
+            int end = cmds.find( '>', idx + 1 );
+            if ( end > idx )
+            {
+                Glib::ustring substr = cmds.substr( idx,  end - idx + 1);
+                g_print("substr for %s: %i -> %i = %s\n", cmds.data(), idx, end - idx + 1, substr.data());
+                event = str_to_key( substr );
+                idx = end;
+            }
+            else
+            {
+            event = str_to_key( cmds.substr( idx, 1 ) );
+            }
+        }
+        else 
+        {
+            event = str_to_key( cmds.substr( idx, 1 ) );
+        }
+
+        if (event != NULL)
+            on_key_press( event );
+    }
+
+    clear_key_buffer();
+}
 
 bool ViKeyManager::on_key_press( GdkEventKey *event )
 {
@@ -173,64 +217,24 @@ Glib::ustring ViKeyManager::key_to_str( GdkEventKey *event )
     {
         key_str = (char)event->keyval;
     }
-    else if (event->keyval == GDK_BackSpace)
-    {
-        key_str = "BS";
-    }
-    else if (event->keyval == GDK_Tab)
-    {
-        key_str = "Tab";
-    }
-    else if (event->keyval == GDK_Linefeed)
-    {
-        key_str = "LF";
-    }
-    else if (event->keyval == GDK_Return)
-    {
-        key_str = "CR";
-    }
-    else if (event->keyval == GDK_space)
-    {
-        key_str = "Space";
-    }
-    else if (event->keyval == GDK_Page_Up)
-    {
-        key_str = "PgUp";
-    }
-    else if (event->keyval == GDK_Page_Down)
-    {
-        key_str = "PgDn";
-    }
-    else if (event->keyval == GDK_Home)
-    {
-        key_str = "Home";
-    }
-    else if (event->keyval == GDK_End)
-    {
-        key_str = "End";
-    }
-    else if (event->keyval == GDK_Up)
-    {
-        key_str = "Up";
-    }
-    else if (event->keyval == GDK_Down)
-    {
-        key_str = "Down";
-    }
-    else if (event->keyval == GDK_Left)
-    {
-        key_str = "Left";
-    }
-    else if (event->keyval == GDK_Right)
-    {
-        key_str = "Right";
-    }
     else if (event->keyval >= GDK_F1 && event->keyval <= GDK_F35)
     {
         int num = event->keyval - (GDK_F1 - 1);
         key_str = "F" + Glib::ustring::format(num);
     }
     else
+    {
+        for (int i = 0; i < vi_key_map_lgth; ++i)
+        {
+            if ( vi_key_map[i].keyval == event->keyval )
+            {
+                key_str = vi_key_map[i].string;
+                break;
+            }
+        }
+    }
+
+    if ( key_str == "" ) 
     {
         key_str = "0x" + Glib::ustring::format(std::hex,  event->keyval);
     }
@@ -256,6 +260,54 @@ Glib::ustring ViKeyManager::key_to_str( GdkEventKey *event )
         key_str = "<" + key_str + ">";
     }
     return key_str;
+}
+
+GdkEventKey* ViKeyManager::str_to_key(const Glib::ustring &str)
+{
+    GdkEventKey* event = (GdkEventKey*)gdk_event_new(GDK_KEY_PRESS);
+    event->window = m_window->get_window()->gobj();
+    event->send_event = TRUE;
+    event->time = GDK_CURRENT_TIME;
+    event->state = GDK_KEY_PRESS_MASK;
+
+    if (str.length() == 0)
+        return NULL;
+
+    if (str.length() == 1)
+    {
+        event->keyval = str[0];
+        return event;
+    }
+
+    if (str[0] == '<' && str[str.length()-1] == '>')
+    {
+        Glib::ustring keyname = str.substr( 1, str.length() - 2 );
+        for (int idx = 0; idx < vi_key_map_lgth; idx++)
+        {
+            if (keyname == vi_key_map[idx].string)
+            {
+                event->keyval = vi_key_map[idx].keyval;
+                break;
+            }
+        }
+    }
+
+    if (event->keyval == 0)
+    {
+        g_print("ERROR: str_to_key mapping not found for %s\n", str.data());
+        return NULL;
+    }
+
+    GdkKeymapKey* keys;
+    gint n_keys;
+    gdk_keymap_get_entries_for_keyval(NULL,
+                                      event->keyval,
+                                      &keys,
+                                      &n_keys);
+    event->hardware_keycode = keys[0].keycode;
+    event->group = keys[0].group;
+
+    return event;
 }
 
 void ViKeyManager::clear_key_buffer( unsigned char flags )
