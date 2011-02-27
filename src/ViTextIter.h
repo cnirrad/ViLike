@@ -22,6 +22,7 @@ class ViTextIter : public Gtk::TextIter
         virtual Glib::ustring get_word() const;
 
         virtual bool forward_next_word_start();
+        virtual bool backward_next_word_start();
 };
 
 #endif

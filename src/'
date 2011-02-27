@@ -208,8 +208,6 @@ class ViKeyManager
         KeyMap m_insertMap;
 
         std::map<char, Glib::ustring> m_registers;
-
-        Glib::ustring m_last_pattern;
 };
 
 

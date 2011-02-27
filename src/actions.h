@@ -225,4 +225,18 @@ class SwapCaseAction : public ExecutableAction {
         virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 };
 
+class WordMotionAction : public MotionAction {
+    public:
+        WordMotionAction( ViKeyManager *vi, bool forward ) :
+            MotionAction( vi ),
+            m_forward( forward )
+        {
+        }
+
+        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+
+    protected:
+        bool m_forward;
+};
+
 #endif

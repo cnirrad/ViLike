@@ -17,6 +17,9 @@ MovementAction::MovementAction( ViKeyManager *vi, GtkMovementStep step, gint cou
 void
 MovementAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
+    if (count_modifier == -1)
+        count_modifier = 1;
+
     if (is_text_widget(w))
     {
         Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
@@ -24,22 +27,14 @@ MovementAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring
 
         ViTextIter cursor = get_cursor_iter( buffer ); 
 
-        if (m_step == GTK_MOVEMENT_WORDS)
-        {
-            ViTextIter iter(cursor);
-            iter.forward_next_word_start();
-            set_cursor(iter, m_ext_sel);
-        }
-        else
-        {
-            gboolean ret_val;
-            gtk_signal_emit_by_name( (GtkObject*)w->gobj(), 
-                                     "move-cursor",
-                                     m_step,
-                                     m_count * count_modifier,
-                                     m_ext_sel,
-                                     &ret_val );
-        }
+        gboolean ret_val;
+        gtk_signal_emit_by_name( (GtkObject*)w->gobj(), 
+                                 "move-cursor",
+                                 m_step,
+                                 m_count * count_modifier,
+                                 m_ext_sel,
+                                 &ret_val );
+        
     }
 
     return;
@@ -65,6 +60,8 @@ ModeAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
     if (m_move_act)
     {
+        if (count_modifier == -1)
+            count_modifier = 1;
         m_move_act->execute(w, count_modifier, params);
     }
     m_vi->set_mode(m_mode, w);
@@ -96,7 +93,7 @@ ChooseRegistryAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring
 //
 //  Helper function for yank and delete
 //
-Glib::ustring yank(ViKeyManager *vi, Gtk::Widget *w, bool del = false)
+Glib::ustring yank(ViKeyManager *vi, Gtk::Widget *w, bool del = false, ViOperatorScope scope = vi_characterwise)
 {
     Glib::ustring text;
     if (is_text_widget(w))
@@ -161,6 +158,9 @@ DeleteAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params
 bool
 DeleteOneAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
 {
+    if (count_modifier == -1)
+        count_modifier = 1;
+
     if (is_text_widget(w))
     {
         Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
@@ -241,7 +241,7 @@ GotoMarkAction::perform_motion( Gtk::Widget *w, int count_modifier, Glib::ustrin
 void
 GotoLineAction::perform_motion( Gtk::Widget *w, int line, Glib::ustring &params ) 
 {
-    if (m_line != -1)
+    if (line == -1)
         line = m_line;
 
     if (is_text_widget(w))
@@ -429,10 +429,8 @@ MatchBracketAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ust
 
     int level = 0;
 
-    while (iter != end_iter)
+    while (iter.iter_next(dir))
     {
-        iter.iter_next(dir);
-
         ch = iter.get_char();
 
         if (ch == chars.end)
@@ -475,7 +473,19 @@ SearchWordUnderCursorAction::perform_motion(Gtk::Widget *w, int count_modifier, 
             return;
         }
 
-        iter++;
+        //
+        //  Make sure the word is properly escaped and then add the
+        //  boundry assertion.
+        //
+        gchar *esc = g_regex_escape_string( word.data(), word.length() );
+        word = "\\b";
+        word += esc;
+        word += "\\b";
+
+        //
+        //  Go forward so that we don't match on this word
+        //
+        iter.forward_next_word_start();
 
         Gtk::TextIter end = buffer->end();
 
@@ -534,5 +544,30 @@ SwapCaseAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &param
         buffer->insert(start, replace);
     }
     return true;
+}
+
+void
+WordMotionAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params) 
+{
+    if (count_modifier == -1)
+        count_modifier = 1;
+
+    if (is_text_widget(w))
+    {
+        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
+
+        ViTextIter cursor = get_cursor_iter( buffer ); 
+
+        ViTextIter iter(cursor);
+        for (int i=0; i<count_modifier; ++i)
+        {
+            if (m_forward)
+                iter.forward_next_word_start();
+            else
+                iter.backward_next_word_start();
+        }
+        set_cursor(iter, m_ext_sel);
+    }
 }
 

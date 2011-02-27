@@ -399,7 +399,7 @@ ViActionContext::reset()
 {
     m_action = NULL;
     m_motion = NULL;
-    m_count = 1;
+    m_count = -1;
     m_param = "";
     m_flags = 0x00;
 }

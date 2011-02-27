@@ -51,7 +51,7 @@ ViTextIter::forward_search( Glib::ustring &pattern,
 
 bool is_word_char(gunichar ch)
 {
-    const Glib::ustring WORD_SEP("<>(){}:.-*+/\\");
+    const Glib::ustring WORD_SEP("<>(){}:.-*+/\\#");
 
     if (isspace(ch))
     {
@@ -129,7 +129,7 @@ bool ViTextIter::iter_next(GtkDirectionType dir)
 
 bool ViTextIter::find_next_non_whitespace(GtkDirectionType dir)
 {
-    while(iter_next(GTK_DIR_RIGHT))
+    while(iter_next(dir))
     {
         gunichar ch = this->get_char();
         if ( !isspace(ch) ) 
@@ -162,5 +162,41 @@ bool ViTextIter::forward_next_word_start()
         return find_next_non_whitespace();
     }
     return found;
+}
+
+bool ViTextIter::backward_next_word_start()
+{
+    g_print("backward_next_word_start\n");
+    gunichar ch = get_char();
+
+    //
+    //  Backup one so that we aren't matching on the current word
+    //
+    if (!iter_next(GTK_DIR_LEFT))
+        return false;
+
+    if (!is_word_char(ch))
+    {
+        //
+        //  Not a word char, so find the end of the word
+        //
+        if (!find_next_non_whitespace(GTK_DIR_LEFT))
+        {
+            return false;
+        }
+    }
+
+    //
+    //  Just find the start of the word
+    //
+    while(iter_next(GTK_DIR_LEFT))
+    {
+        if (!is_word_char(get_char()))
+        {
+            forward_char();                
+            return true;
+        }
+    }
+
 }
 

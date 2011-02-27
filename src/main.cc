@@ -41,8 +41,9 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "<Up>", up_act );
     vi->map_key( vi_normal, "l", right_act );
     vi->map_key( vi_normal, "<Right>", right_act );
-    vi->map_key( vi_normal, "w", new MovementAction(vi, GTK_MOVEMENT_WORDS, 1));
-    vi->map_key( vi_normal, "b", new MovementAction(vi, GTK_MOVEMENT_WORDS, -1));
+    vi->map_key( vi_normal, "w", new WordMotionAction(vi, true));
+    vi->map_key( vi_normal, "W", new MovementAction(vi, GTK_MOVEMENT_WORDS, 1));
+    vi->map_key( vi_normal, "b", new WordMotionAction(vi, false));
     vi->map_key( vi_normal, "^", new KeySequenceAction( vi, "0w" ));
     vi->map_key( vi_normal, "<C-f>", page_down_act );
     vi->map_key( vi_normal, "<PgDn>", page_down_act );
@@ -69,6 +70,7 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "A", new ModeAction( eol_act, vi, vi_insert ));
     vi->map_key( vi_normal, "a", new ModeAction( left_act, vi, vi_insert ));
     vi->map_key( vi_normal, "i", new ModeAction(vi, vi_insert));
+    vi->map_key( vi_normal, "I", new KeySequenceAction( vi, "^i" ));
     vi->map_key( vi_normal, "R", new ReplaceAction(vi));
     vi->map_key( vi_normal, "O", new KeySequenceAction( vi, "0i<CR><Esc>ki" ));
     vi->map_key( vi_normal, "o", new KeySequenceAction( vi, "$i<CR><Esc>i" ));
@@ -78,6 +80,9 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "S", new KeySequenceAction( vi, "0c$" ));
     vi->map_key( vi_normal, "s", new KeySequenceAction( vi, "cl" ));
 
+    //
+    //  Modify
+    //
     vi->map_key( vi_normal, "~", new SwapCaseAction( vi ));
 
     //
@@ -85,8 +90,10 @@ void setup_vi_keybindings(MainWindow &win)
     //
     vi->map_key( vi_normal, "\"", new ChooseRegistryAction( vi ));
     vi->map_key( vi_normal, "y", new YankAction( vi ));
+    vi->map_key( vi_normal, "Y", new KeySequenceAction( vi, "0y$" ));
     vi->map_key( vi_normal, "p", new PutAction( vi ));
     vi->map_key( vi_normal, "d", new DeleteAction( vi ));
+    vi->map_key( vi_normal, "D", new KeySequenceAction( vi, "d$" ));
     vi->map_key( vi_normal, "x", new DeleteOneAction( vi ));
     vi->map_key( vi_normal, "X", new DeleteOneAction( vi, true ));
 
