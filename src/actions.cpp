@@ -486,3 +486,53 @@ SearchWordUnderCursorAction::perform_motion(Gtk::Widget *w, int count_modifier, 
     }
 }
 
+bool
+SwapCaseAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+{
+    if (is_text_widget(w))
+    {
+        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
+
+        char ch;    
+        Glib::ustring text = get_selected_text(buffer);
+        Glib::ustring replace;
+
+        for (int idx = 0; idx < text.length(); ++idx)
+        {
+            ch = text[idx]; 
+            if (islower(ch))
+            {
+                ch = toupper(ch);
+                replace.push_back(ch);
+            }
+            else if (toupper(ch))
+            {
+                ch = tolower(ch);
+                replace.push_back(ch);
+            }
+            else
+            {
+                replace.push_back(ch);
+            }
+        }
+
+        ViTextIter start = get_cursor_iter( buffer );
+
+        if (buffer->get_has_selection())
+        {
+            buffer->erase_selection();
+        }
+        else
+        {
+            ViTextIter end(start);
+            end.forward_chars(replace.length());
+            buffer->erase(start, end);
+        }
+
+        start = get_cursor_iter( buffer );
+        buffer->insert(start, replace);
+    }
+    return true;
+}
+

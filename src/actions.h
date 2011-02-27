@@ -215,4 +215,14 @@ class SearchWordUnderCursorAction : public MotionAction {
         virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 };
 
+class SwapCaseAction : public ExecutableAction {
+    public:
+        SwapCaseAction( ViKeyManager *vi ) :
+            ExecutableAction( vi )
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+};
+
 #endif

@@ -32,6 +32,21 @@ get_cursor_iter( Glib::RefPtr<Gtk::TextBuffer> buffer )
     return ViTextIter(buffer->get_iter_at_mark( cursor ));
 }
 
+Glib::ustring
+get_selected_text( Glib::RefPtr<Gtk::TextBuffer> buffer )
+{
+    Gtk::TextIter start, end;
+    if (buffer->get_selection_bounds( start, end ))
+    {
+        return buffer->get_text(start, end); 
+    }
+    else
+    {
+        gunichar ch = get_cursor_iter(buffer).get_char();
+        return Glib::ustring(1, ch);
+    }
+}
+
 void set_cursor( Gtk::TextBuffer::iterator location, bool ext_sel )
 {
         Glib::RefPtr<Gtk::TextBuffer> buffer = location.get_buffer();

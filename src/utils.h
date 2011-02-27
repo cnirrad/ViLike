@@ -21,6 +21,9 @@ bool is_source_view( Gtk::Widget *w );
 ViTextIter
 get_cursor_iter( Glib::RefPtr<Gtk::TextBuffer> buffer );
 
+Glib::ustring
+get_selected_text( Glib::RefPtr<Gtk::TextBuffer> buffer );
+
 bool iter_next( Gtk::TextBuffer::iterator &iter, GtkDirectionType dir );
 
 /**

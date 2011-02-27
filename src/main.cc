@@ -78,6 +78,8 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "S", new KeySequenceAction( vi, "0c$" ));
     vi->map_key( vi_normal, "s", new KeySequenceAction( vi, "cl" ));
 
+    vi->map_key( vi_normal, "~", new SwapCaseAction( vi ));
+
     //
     //  Registers/yank/put/delete
     //
