@@ -205,4 +205,14 @@ class MatchBracketAction : public MotionAction {
         virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 };
 
+class SearchWordUnderCursorAction : public MotionAction {
+    public:
+        SearchWordUnderCursorAction( ViKeyManager *vi ) :
+            MotionAction( vi )
+        {
+        }
+
+        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+};
+
 #endif

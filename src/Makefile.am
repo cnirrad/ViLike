@@ -7,7 +7,8 @@ sourcerer_SOURCES =  main.cc \
 					 MainWindow.cpp \
 					 ViKeyManager.cpp \
 					 actions.cpp \
-					 utils.cpp
+					 utils.cpp \
+					 ViTextIter.cpp
 
 
 sourcerer_LDFLAGS = 

@@ -4,6 +4,7 @@
 
 #include "actions.h"
 #include "utils.h"
+#include "ViTextIter.h"
 
 
 MovementAction::MovementAction( ViKeyManager *vi, GtkMovementStep step, gint count ) :
@@ -13,18 +14,33 @@ MovementAction::MovementAction( ViKeyManager *vi, GtkMovementStep step, gint cou
 {
 }
 
-
 void
 MovementAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
+    if (is_text_widget(w))
+    {
+        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
-    gboolean ret_val;
-    gtk_signal_emit_by_name( (GtkObject*)w->gobj(), 
-                             "move-cursor",
-                             m_step,
-                             m_count * count_modifier,
-                             m_ext_sel,
-                             &ret_val );
+        ViTextIter cursor = get_cursor_iter( buffer ); 
+
+        if (m_step == GTK_MOVEMENT_WORDS)
+        {
+            ViTextIter iter(cursor);
+            iter.forward_next_word_start();
+            set_cursor(iter, m_ext_sel);
+        }
+        else
+        {
+            gboolean ret_val;
+            gtk_signal_emit_by_name( (GtkObject*)w->gobj(), 
+                                     "move-cursor",
+                                     m_step,
+                                     m_count * count_modifier,
+                                     m_ext_sel,
+                                     &ret_val );
+        }
+    }
 
     return;
 }
@@ -150,7 +166,7 @@ DeleteOneAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &par
         Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
-        Gtk::TextBuffer::iterator end = get_cursor_iter( buffer ); 
+        ViTextIter end = get_cursor_iter( buffer ); 
 
         if (m_before)
             end.backward_cursor_positions(count_modifier);
@@ -181,7 +197,7 @@ CreateMarkAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &pa
         Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
-        Gtk::TextBuffer::iterator it = get_cursor_iter( buffer ); 
+        ViTextIter it = get_cursor_iter( buffer ); 
 
         if ( params == "" )
         {
@@ -289,10 +305,10 @@ FindAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &pa
         Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
         
-        Gtk::TextBuffer::iterator cursor = get_cursor_iter( buffer ); 
+        ViTextIter cursor = get_cursor_iter( buffer ); 
         cursor.forward_cursor_position();
 
-        Gtk::TextBuffer::iterator end(cursor); 
+        ViTextIter end(cursor); 
         end.forward_to_line_end();
 
         Glib::ustring txt = cursor.get_slice( end );
@@ -321,7 +337,7 @@ FindAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &pa
 bool 
 UndoAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
-    if ( is_text_widget( w ) )
+    if ( is_source_view( w ) )
     { 
         gtksourceview::SourceView *view = 
             dynamic_cast<gtksourceview::SourceView*>(w); 
@@ -364,7 +380,7 @@ MatchBracketAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ust
         dynamic_cast<gtksourceview::SourceView*>(w); 
     Glib::RefPtr< gtksourceview::SourceBuffer > buffer = 
         view->get_source_buffer();
-    Gtk::TextBuffer::iterator iter = get_cursor_iter( buffer ); 
+    ViTextIter iter = get_cursor_iter( buffer ); 
     
     gchar ch = iter.get_char();
 
@@ -381,8 +397,8 @@ MatchBracketAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ust
 
     gchar find = '\0';
     match_chars chars = {0, 0};
-    bool forward;
-    Gtk::TextBuffer::iterator end_iter;
+    GtkDirectionType dir;
+    Gtk::TextIter end_iter;
     
 
     for (int i = 0; i < map_lgth; ++i)
@@ -390,13 +406,13 @@ MatchBracketAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ust
         match_chars mc = map[i];
         if ( ch == mc.begin )
         {
-            forward = true;
+            dir = GTK_DIR_RIGHT;
             chars = mc;
             end_iter = buffer->end();
         }
         else if ( ch == mc.end )
         {
-            forward = false;
+            dir = GTK_DIR_LEFT;
             chars.begin = mc.end;
             chars.end = mc.begin;
             end_iter = buffer->begin();
@@ -413,11 +429,9 @@ MatchBracketAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ust
 
     int level = 0;
 
-#define ITER_NEXT(void) if (forward) iter.forward_char(); else iter.backward_char();
-
     while (iter != end_iter)
     {
-        ITER_NEXT()
+        iter.iter_next(dir);
 
         ch = iter.get_char();
 
@@ -426,7 +440,7 @@ MatchBracketAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ust
             if (level == 0)
             {
                 if (m_ext_sel)
-                    ITER_NEXT()     // make sure the ending bracket is selected too
+                    iter.iter_next(dir);     // make sure the ending bracket is selected too
                 set_cursor(iter, m_ext_sel);
                 return;
             }
@@ -441,5 +455,34 @@ MatchBracketAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ust
         }
     }
     g_print("Match not found.\n");
+}
+
+void
+SearchWordUnderCursorAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params) 
+{
+    if (is_text_widget(w))
+    {
+        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
+        
+        ViTextIter cursor = get_cursor_iter( buffer ); 
+        ViTextIter iter( cursor ); 
+
+        Glib::ustring word = iter.get_word();
+        if (word == "")
+        {
+            g_print("No string under cursor.\n");
+            return;
+        }
+
+        iter++;
+
+        Gtk::TextIter end = buffer->end();
+
+        if (iter.forward_search( word, end ))
+        {
+            set_cursor( iter, m_ext_sel );
+        }
+    }
 }
 

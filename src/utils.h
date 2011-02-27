@@ -3,6 +3,8 @@
 
 #include <gtkmm.h>
 
+#include "ViTextIter.h"
+
 #define BIT_ON( bit_field, bit )                                \
     (bit_field & bit) == bit
 
@@ -13,11 +15,13 @@ bool is_text_widget( Gtk::Widget *w );
 
 bool is_source_view( Gtk::Widget *w );
 
-/**
+/** 
  *  Gets an iterator for the current cursor position.
  */
-Gtk::TextBuffer::iterator 
+ViTextIter
 get_cursor_iter( Glib::RefPtr<Gtk::TextBuffer> buffer );
+
+bool iter_next( Gtk::TextBuffer::iterator &iter, GtkDirectionType dir );
 
 /**
  * Sets the cursor position to location. If ext_sel is true, 

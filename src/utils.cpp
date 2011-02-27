@@ -23,13 +23,13 @@ bool is_source_view( Gtk::Widget *w )
    return false;
 }
 
-Gtk::TextBuffer::iterator 
+ViTextIter
 get_cursor_iter( Glib::RefPtr<Gtk::TextBuffer> buffer )
 {
     Glib::RefPtr< Gtk::TextBuffer::Mark > cursor;
 
     cursor = buffer->get_insert();
-    return buffer->get_iter_at_mark( cursor );
+    return ViTextIter(buffer->get_iter_at_mark( cursor ));
 }
 
 void set_cursor( Gtk::TextBuffer::iterator location, bool ext_sel )

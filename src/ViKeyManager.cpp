@@ -85,7 +85,7 @@ bool ViKeyManager::execute( Glib::ustring &cmds, ViMode mode )
             }
             else
             {
-            event = str_to_key( cmds.substr( idx, 1 ) );
+                event = str_to_key( cmds.substr( idx, 1 ) );
             }
         }
         else 

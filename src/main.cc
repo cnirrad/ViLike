@@ -43,7 +43,7 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "<Right>", right_act );
     vi->map_key( vi_normal, "w", new MovementAction(vi, GTK_MOVEMENT_WORDS, 1));
     vi->map_key( vi_normal, "b", new MovementAction(vi, GTK_MOVEMENT_WORDS, -1));
-    vi->map_key( vi_normal, "^", new MovementAction(vi, GTK_MOVEMENT_PARAGRAPHS, -1));
+    vi->map_key( vi_normal, "^", new KeySequenceAction( vi, "0w" ));
     vi->map_key( vi_normal, "<C-f>", page_down_act );
     vi->map_key( vi_normal, "<PgDn>", page_down_act );
     vi->map_key( vi_normal, "<C-b>", page_up_act );
@@ -61,6 +61,7 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "G", new GotoLineAction( vi ));
     vi->map_key( vi_normal, "gg", new GotoLineAction( vi, 1 ));
     vi->map_key( vi_normal, "%", new MatchBracketAction( vi ));
+    vi->map_key( vi_normal, "*", new SearchWordUnderCursorAction( vi ));
 
     //
     //  Insert/append
