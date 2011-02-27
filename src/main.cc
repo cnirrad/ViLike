@@ -74,6 +74,9 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "o", new KeySequenceAction( vi, "$i<CR><Esc>i" ));
     vi->map_key( vi_normal, "V", new ModeAction( vi, vi_visual ));
     vi->map_key( vi_normal, "c", new ChangeAction( vi ));
+    vi->map_key( vi_normal, "C", new KeySequenceAction( vi, "c$" ));
+    vi->map_key( vi_normal, "S", new KeySequenceAction( vi, "0c$" ));
+    vi->map_key( vi_normal, "s", new KeySequenceAction( vi, "cl" ));
 
     //
     //  Registers/yank/put/delete

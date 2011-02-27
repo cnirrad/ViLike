@@ -79,8 +79,8 @@ ReplaceAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params
     if (is_text_widget(w))
     {
         Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w);
-        view->set_overwrite(true);
         m_vi->set_mode(vi_insert);        
+        view->set_overwrite(true);
     }
     return true;
 }
@@ -184,7 +184,7 @@ bool
 ChangeAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
 {
     yank(m_vi, w, true); 
-    m_vi->set_mode(vi_insert);
+    m_vi->set_mode(vi_insert, w);
 
     return true;
 }
