@@ -362,7 +362,7 @@ RedoAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
         Glib::RefPtr< gtksourceview::SourceBuffer > buffer = 
             view->get_source_buffer();
 
-        if ( buffer->can_undo() )
+        if ( buffer->can_redo() )
             buffer->redo();
     }
     return true;
