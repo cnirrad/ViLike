@@ -17,14 +17,14 @@ wait_to_execute_action( unsigned char flags )
     return (flags & ( await_motion | await_param )) > 0;
 }
 
-
-ViKeyManager::ViKeyManager(Gtk::Window *w) :
+ViKeyManager::ViKeyManager(Gtk::Window *w, ViUserMessageArea *msg_area) :
     m_context(),
     m_count(0),
     m_current_register(0x00),
     m_insertMap(),
     m_key(""),
     m_mode(vi_normal),
+    m_msg_area(msg_area),
     m_normalMap(),
     m_registers(),
     m_window(w)
@@ -35,6 +35,7 @@ ViKeyManager::ViKeyManager(Gtk::Window *w) :
 ViKeyManager::~ViKeyManager()
 {
     delete m_context;
+    delete m_msg_area;
 }
 
 bool ViKeyManager::map_key(ViMode mode, const char *key, ExecutableAction *action )
@@ -98,6 +99,48 @@ bool ViKeyManager::execute( Glib::ustring &cmds, ViMode mode )
     }
 
     clear_key_buffer();
+} 
+
+void ViKeyManager::show_message( const char *format, ... )
+{
+    va_list args;
+    va_start( args, format );
+
+    // Calculate the final length of the formatted string
+    int len = vsnprintf( 0, 0, format, args );
+
+    // Allocate a buffer (including room for null termination)
+    char* target_string = new char[++len];
+
+    // Generate the formatted string
+    vsnprintf( target_string, len, format, args );
+
+    m_msg_area->show_message( target_string );
+
+    // Clean up
+    delete [] target_string;
+    va_end( args ); 
+}
+
+void ViKeyManager::show_error( const char *format, ...)
+{
+    va_list args;
+    va_start( args, format );
+
+    // Calculate the final length of the formatted string
+    int len = vsnprintf( 0, 0, format, args );
+
+    // Allocate a buffer (including room for null termination)
+    char* target_string = new char[++len];
+
+    // Generate the formatted string
+    vsnprintf( target_string, len, format, args );
+
+    m_msg_area->show_error( target_string );
+
+    // Clean up
+    delete [] target_string;
+    va_end( args ); 
 }
 
 bool ViKeyManager::on_key_press( GdkEventKey *event )

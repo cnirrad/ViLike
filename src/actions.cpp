@@ -226,7 +226,7 @@ GotoMarkAction::perform_motion( Gtk::Widget *w, int count_modifier, Glib::ustrin
 
         if ( mark == NULL )
         {
-            g_print( "Mark %s not present.\n", params.data() );
+            m_vi->show_error( "Mark %s not present.", params.data() );
             return;
         }
 
@@ -469,7 +469,7 @@ SearchWordUnderCursorAction::perform_motion(Gtk::Widget *w, int count_modifier, 
         Glib::ustring word = iter.get_word();
         if (word == "")
         {
-            g_print("No string under cursor.\n");
+            m_vi->show_error("No string under cursor.");
             return;
         }
 
@@ -492,6 +492,10 @@ SearchWordUnderCursorAction::perform_motion(Gtk::Widget *w, int count_modifier, 
         if (iter.forward_search( word, end ))
         {
             set_cursor( iter, m_ext_sel );
+        }
+        else
+        {
+            m_vi->show_error("%s not found.", word.data());
         }
     }
 }

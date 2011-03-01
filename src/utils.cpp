@@ -1,5 +1,6 @@
 #include "utils.h"
 
+
 bool is_text_widget( Gtk::Widget *w ) 
 {
    const gchar *type = G_OBJECT_TYPE_NAME(w->gobj());

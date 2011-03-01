@@ -4,14 +4,6 @@
 #include <gtkmm.h>
 #include <gtksourceviewmm/sourceview.h>
 
-//class ViTextView : public Gtk::TextView
-//{
-//    public:
-//        ViTextView();
-//
-//    protected:
-//        virtual bool on_key_press(GdkEventKey *event);
-//};
 class ViKeyManager;
 
 class MainWindow : public Gtk::Window

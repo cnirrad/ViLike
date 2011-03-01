@@ -7,6 +7,32 @@
 
 using namespace gtksourceview;
 
+
+class MessageArea : public ViUserMessageArea
+{
+    public:
+        MessageArea( Gtk::Statusbar *status ) : m_status(status)
+        {
+            m_context = m_status->get_context_id( "message_area" );
+        }
+
+        void show_message( const Glib::ustring &msg )
+        {
+            m_status->push( msg, m_context );
+        }
+
+        void show_error( const Glib::ustring &err )
+        {
+            m_status->push( err, m_context );
+        }
+
+    protected:
+        Gtk::Statusbar *m_status;
+        int m_context;
+
+};
+
+
 MainWindow::MainWindow() 
 {
     set_title("Sourcerer");
@@ -42,7 +68,8 @@ MainWindow::MainWindow()
     m_scrollView.set_policy(Gtk::POLICY_AUTOMATIC, 
                             Gtk::POLICY_AUTOMATIC);
 
-    vi = new ViKeyManager(this);
+    MessageArea *area = new MessageArea(&m_statusBar);
+    vi = new ViKeyManager(this, area);
 
     add(m_vbox);
 

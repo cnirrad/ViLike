@@ -48,6 +48,7 @@ class ExecutableAction {
 
         unsigned char m_flags;
         ViKeyManager *m_vi;
+
 };
 
 class MotionAction : public ExecutableAction {
@@ -70,6 +71,13 @@ class MotionAction : public ExecutableAction {
 
     protected:
         gboolean m_ext_sel;
+};
+
+class ViUserMessageArea
+{
+    public:
+        virtual void show_message( const Glib::ustring &msg ) = 0;
+        virtual void show_error( const Glib::ustring &err ) = 0;
 };
 
 class ViActionContext {
@@ -149,7 +157,7 @@ const unsigned int vi_key_map_lgth = sizeof( vi_key_map ) / sizeof( vi_key_map[0
 class ViKeyManager
 {
     public:
-        ViKeyManager(Gtk::Window *w);
+        ViKeyManager(Gtk::Window *w, ViUserMessageArea *msg_area);
         virtual ~ViKeyManager();
 
         virtual bool on_key_press( GdkEventKey *event );
@@ -162,6 +170,9 @@ class ViKeyManager
 
         virtual bool execute( Glib::ustring &cmds );
         virtual bool execute( Glib::ustring &cmds, ViMode mode );
+
+        virtual void show_message( const char *format, ... );
+        virtual void show_error( const char *format, ... );
 
         /**
          * Translates a keypress.
@@ -210,6 +221,8 @@ class ViKeyManager
         std::map<char, Glib::ustring> m_registers;
 
         Glib::ustring m_last_pattern;
+
+        ViUserMessageArea *m_msg_area;
 };
 
 
