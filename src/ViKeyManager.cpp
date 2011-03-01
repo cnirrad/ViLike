@@ -455,6 +455,8 @@ MotionAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
     if (m_vi->get_mode() == vi_visual)
         m_ext_sel = true;
+    else
+        m_ext_sel = false;
 
     perform_motion(w, count_modifier, params);
     

@@ -306,29 +306,34 @@ FindAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &pa
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
         
         ViTextIter cursor = get_cursor_iter( buffer ); 
-        cursor.forward_cursor_position();
 
-        ViTextIter end(cursor); 
-        end.forward_to_line_end();
-
-        Glib::ustring txt = cursor.get_slice( end );
-
-        int idx = txt.find( params[0] );
-
-        if (idx > 0)
+        //
+        //  Take one step to make sure we don't match on the
+        //  current character.
+        //
+        if (!cursor.iter_next(m_dir))
         {
-            g_print("Found %c at %i\n", params[0], idx);
+            return;
+        }
 
-            //
-            //  If extending the selection, include the search
-            //  character as part of the selection.
-            //
-            if (m_ext_sel)
-                idx++;
+        while (cursor.iter_next(m_dir))
+        {
+            gunichar ch = cursor.get_char();
+            if (ch == '\r' || ch == '\n')
+                return;
 
-            cursor.forward_cursor_positions(idx);
+            if (ch == params[0])
+            {
+                //
+                //  If extending selection, include the 
+                //  matched character.
+                //
+                if (m_ext_sel)
+                    cursor.iter_next(m_dir);
 
-            set_cursor( cursor, m_ext_sel );
+                set_cursor( cursor, m_ext_sel );
+                return;
+            }
         }
     }
 }

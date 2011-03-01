@@ -58,7 +58,8 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "$", eol_act );
     vi->map_key( vi_normal, "0", bol_act );
 
-    vi->map_key( vi_normal, "f", new FindAction( vi ));
+    vi->map_key( vi_normal, "f", new FindAction( vi, true ));
+    vi->map_key( vi_normal, "F", new FindAction( vi, false ));
     vi->map_key( vi_normal, "G", new GotoLineAction( vi ));
     vi->map_key( vi_normal, "gg", new GotoLineAction( vi, 1 ));
     vi->map_key( vi_normal, "%", new MatchBracketAction( vi ));

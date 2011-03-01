@@ -167,12 +167,19 @@ class InsertLineAction : public ExecutableAction {
 
 class FindAction : public MotionAction {
     public:
-        FindAction( ViKeyManager *vi ) :
+        FindAction( ViKeyManager *vi, bool forward ) :
             MotionAction( vi, await_param )
         {
+            if (forward)
+                m_dir = GTK_DIR_RIGHT;
+            else
+                m_dir = GTK_DIR_LEFT;
         }
 
         virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+
+    protected:
+        GtkDirectionType m_dir;
 };
 
 class UndoAction : public ExecutableAction {
