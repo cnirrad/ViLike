@@ -1,8 +1,8 @@
 #include "ViTextIter.h"
 
-ViTextIter::ViTextIter( const Gtk::TextIter &iter ) : Gtk::TextIter( iter )
+ViTextIter::ViTextIter( const Gtk::TextIter &iter ) : 
+    Gtk::TextIter( iter )
 {
-
 }
 
 ViTextIter::ViTextIter( const ViTextIter &iter ) : Gtk::TextIter( iter )
@@ -10,44 +10,13 @@ ViTextIter::ViTextIter( const ViTextIter &iter ) : Gtk::TextIter( iter )
     if (iter == *this)
         return;
     *this = iter;
+
 }
 
 ViTextIter::~ViTextIter()
 {
 }
 
-bool
-ViTextIter::forward_search( Glib::ustring &pattern,
-                            Gtk::TextIter &iter_end )
-{
-    g_print("searching for %s\n", pattern.data());
-    Glib::ustring search_space = get_buffer()->get_text(*this, iter_end);
-
-    GError *error;
-    GRegexCompileFlags compile_flags;
-    GRegexMatchFlags match_options;
-    GRegex *regex = g_regex_new( pattern.data(), 
-                                 compile_flags, match_options, NULL );
-    GMatchInfo *match_info;
-
-    g_regex_match( regex, search_space.data(), match_options, &match_info);
-
-    int start, end;
-    if (!g_match_info_fetch_pos( match_info, 0, &start, &end ))
-    {
-        g_print("No match found.\n");
-        return false;
-    }
-
-    g_print("found string %i characters in\n", start);
-
-    forward_chars(start);
-
-    g_match_info_free( match_info );
-    g_regex_unref( regex );
-
-    return true;
-}
 
 bool is_word_char(gunichar ch)
 {

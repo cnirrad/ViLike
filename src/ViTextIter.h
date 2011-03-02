@@ -16,13 +16,11 @@ class ViTextIter : public Gtk::TextIter
 
         bool find_next_non_whitespace(GtkDirectionType dir = GTK_DIR_RIGHT);
 
-        bool forward_search( Glib::ustring &search_txt,
-                             Gtk::TextIter &iter_end );
-
         virtual Glib::ustring get_word() const;
 
         virtual bool forward_next_word_start();
         virtual bool backward_next_word_start();
+
 };
 
 #endif

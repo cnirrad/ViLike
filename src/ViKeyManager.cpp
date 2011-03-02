@@ -1,5 +1,6 @@
 #include <iostream>
 #include "ViKeyManager.h"
+#include "ViActions.h"
 #include "utils.h"
 
 
@@ -10,6 +11,30 @@
          sym == GDK_Super_L || sym == GDK_Super_R ||        \
          sym == GDK_Hyper_L || sym == GDK_Hyper_R ||        \
          sym == GDK_Shift_L || sym == GDK_Shift_R )
+
+struct KeyMapping
+{
+    guint keyval;
+    const char * string;
+};
+
+const KeyMapping vi_key_map[] = {
+    { GDK_Escape,           "Esc" },
+    { GDK_BackSpace,        "BS" },
+    { GDK_Tab,              "Tab" },
+    { GDK_Linefeed,         "LF" },
+    { GDK_Return,           "CR" },
+    { GDK_space,            "Space" },
+    { GDK_Page_Up,          "PgUp" },
+    { GDK_Page_Down,        "PgDn" },
+    { GDK_Home,             "Home" },
+    { GDK_End,              "End" },
+    { GDK_Up,               "Up" },
+    { GDK_Down,             "Down" },
+    { GDK_Left,             "Left" },
+    { GDK_Right,            "Right" }
+};
+const unsigned int vi_key_map_lgth = sizeof( vi_key_map ) / sizeof( vi_key_map[0] );
 
 bool
 wait_to_execute_action( unsigned char flags )
@@ -447,58 +472,21 @@ ViActionContext::reset()
     m_flags = 0x00;
 }
 
-//
-//  MotionAction
-//
-bool
-MotionAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
-{
-    if (m_vi->get_mode() == vi_visual)
-        m_ext_sel = true;
-    else
-        m_ext_sel = false;
-
-    perform_motion(w, count_modifier, params);
-    
-    if (is_text_widget(w))
-    {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w);
-        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
-        view->scroll_to( buffer->get_insert() );
-    }
+void ViActionContext::set_motion(MotionAction *motion) 
+{ 
+    m_motion = motion; 
+    m_flags = m_flags ^ await_motion;
+    m_flags = m_flags | motion->m_flags;
 }
 
-bool
-MotionAction::execute_as_subcommand(Gtk::Widget *w, ViActionContext *context)
-{
-    //
-    //  If waiting for a motion, then extend selection will be
-    //  true. The selection is how the command waiting for the 
-    //  motion will know what to act upon.
-    //
-    m_ext_sel = true;
-
-    perform_motion(w, context->get_count(), context->get_param());
-
-    if (context)
-    {
-        ExecutableAction *a = context->get_action();
-        a->execute(w, context->get_count(), context->get_param()); 
-    }
-
-    //
-    // If not in visual mode, then the extend selection was to
-    // allow other commands to know the range to act on. Remove the 
-    // selection now.
-    //
-    if (m_ext_sel && m_vi->get_mode() != vi_visual && is_text_widget(w))
-    {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
-        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
-
-        Gtk::TextBuffer::iterator it = get_cursor_iter( buffer ); 
-        buffer->place_cursor(it);
-    } 
-    return true;
+void ViActionContext::set_action(ExecutableAction *action) 
+{ 
+    m_action = action; 
+    m_flags = action->m_flags;
 }
 
+void ViActionContext::set_param( Glib::ustring p ) 
+{ 
+    m_param = p; 
+    m_flags = m_flags ^ await_param;
+}

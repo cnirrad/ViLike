@@ -486,11 +486,24 @@ SearchWordUnderCursorAction::perform_motion(Gtk::Widget *w, int count_modifier, 
         word = "\\b";
         word += esc;
         word += "\\b";
-
+/*
         //
         //  Go forward so that we don't match on this word
         //
-        iter.forward_next_word_start();
+        if (m_forward)
+        {
+            iter.forward_next_word_start();
+        }
+        else
+        {
+            iter.backward_next_word_start();
+            if (iter.backward_search( word ))
+                set_cursor( iter, m_ext_sel );
+            else
+                m_vi->show_error("%s not found.", word.data());
+
+            return;
+        }
 
         Gtk::TextIter end = buffer->end();
 
@@ -502,6 +515,7 @@ SearchWordUnderCursorAction::perform_motion(Gtk::Widget *w, int count_modifier, 
         {
             m_vi->show_error("%s not found.", word.data());
         }
+        */
     }
 }
 

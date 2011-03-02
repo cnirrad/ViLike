@@ -2,6 +2,7 @@
 #define ACTIONS_H
 
 #include "ViKeyManager.h"
+#include "ViActions.h"
 
 
 class MovementAction : public MotionAction {
@@ -214,12 +215,15 @@ class MatchBracketAction : public MotionAction {
 
 class SearchWordUnderCursorAction : public MotionAction {
     public:
-        SearchWordUnderCursorAction( ViKeyManager *vi ) :
-            MotionAction( vi )
+        SearchWordUnderCursorAction( ViKeyManager *vi, bool forward = true ) :
+            MotionAction( vi ), m_forward(forward)
         {
         }
 
         virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+
+    protected:
+        bool m_forward;
 };
 
 class SwapCaseAction : public ExecutableAction {

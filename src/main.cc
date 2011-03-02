@@ -3,6 +3,7 @@
 
 #include "MainWindow.h"
 #include "ViKeyManager.h"
+#include "ViActions.h"
 #include "actions.h"
 
 void setup_vi_keybindings(MainWindow &win);
@@ -64,6 +65,7 @@ void setup_vi_keybindings(MainWindow &win)
     vi->map_key( vi_normal, "gg", new GotoLineAction( vi, 1 ));
     vi->map_key( vi_normal, "%", new MatchBracketAction( vi ));
     vi->map_key( vi_normal, "*", new SearchWordUnderCursorAction( vi ));
+    vi->map_key( vi_normal, "#", new SearchWordUnderCursorAction( vi, false ));
 
     //
     //  Insert/append
