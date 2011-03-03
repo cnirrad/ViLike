@@ -4,6 +4,8 @@
 #include <gtkmm.h>
 #include <gtksourceviewmm/sourceview.h>
 
+#include "Editor.h"
+
 class ViKeyManager;
 
 class MainWindow : public Gtk::Window
@@ -14,12 +16,17 @@ class MainWindow : public Gtk::Window
 
         ViKeyManager* get_key_manager() const;
 
+        Gtk::Statusbar* get_status_bar();
+
+        bool is_fullscreen() const;
+        bool is_maximized() const;
+
     protected:
 
         bool on_key_press_event(GdkEventKey *event);
 
-        gtksourceview::SourceView m_sourceView; 
-        Gtk::ScrolledWindow m_scrollView;
+        SourceEditor m_sourceEditor;
+
         Gtk::Statusbar m_statusBar;
         Gtk::VBox m_vbox;
     

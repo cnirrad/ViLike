@@ -39,43 +39,15 @@ MainWindow::MainWindow()
     set_border_width(4);
     set_default_size(500, 500);
 
-    Glib::RefPtr< gtksourceview::SourceBuffer > buffer = 
-            gtksourceview::SourceBuffer::create(Glib::RefPtr<Gtk::TextTagTable>());
-
-    m_sourceView.set_source_buffer( buffer );
-    m_sourceView.set_show_line_numbers( true );
-    m_sourceView.set_overwrite( true );
-
-    buffer->set_highlight_matching_brackets(true);
-    buffer->set_max_undo_levels(100);
-
-    Glib::RefPtr< Gio::File > file = Gio::File::create_for_path( 
-            "/home/darrin/dev/projects/sourcerer/src/actions.cpp");
-
-    char *contents;
-    gsize length;
-    if (!file->load_contents( contents, length ))
-    {
-        g_print("Error: Couldn't load file.\n");
-    }
-
-    buffer->begin_not_undoable_action();
-    buffer->set_text(contents);
-    set_cursor_at_line( buffer, 1, false );
-    buffer->end_not_undoable_action();
-
-    m_scrollView.add(m_sourceView);
-    m_scrollView.set_policy(Gtk::POLICY_AUTOMATIC, 
-                            Gtk::POLICY_AUTOMATIC);
 
     MessageArea *area = new MessageArea(&m_statusBar);
     vi = new ViKeyManager(this, area);
 
     add(m_vbox);
 
-    m_vbox.pack_start(m_scrollView, true, true);
+    m_vbox.pack_start(m_sourceEditor, true, true);
     m_vbox.pack_end(m_statusBar, false, false);
-    
+
     show_all_children();
 }
 
@@ -87,6 +59,28 @@ MainWindow::~MainWindow()
 ViKeyManager* MainWindow::get_key_manager() const
 {
     return vi;
+}
+
+Gtk::Statusbar*
+MainWindow::get_status_bar()
+{
+    return &m_statusBar;
+}
+
+bool MainWindow::is_fullscreen() const
+{
+    Gdk::WindowState state = get_window()->get_state();
+    
+    return ( (state & Gdk::WINDOW_STATE_FULLSCREEN) ==
+                Gdk::WINDOW_STATE_FULLSCREEN );
+}
+
+bool MainWindow::is_maximized() const
+{
+    Gdk::WindowState state = get_window()->get_state();
+    
+    return ( (state & Gdk::WINDOW_STATE_MAXIMIZED) ==
+                Gdk::WINDOW_STATE_MAXIMIZED );
 }
 
 bool MainWindow::on_key_press_event(GdkEventKey *event)

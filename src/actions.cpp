@@ -2,6 +2,7 @@
 #include <gtkmm.h>
 #include <gtksourceviewmm/sourceview.h>
 
+#include "App.h"
 #include "actions.h"
 #include "utils.h"
 #include "ViTextIter.h"
@@ -592,5 +593,36 @@ WordMotionAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustri
         }
         set_cursor(iter, m_ext_sel);
     }
+}
+
+bool 
+MaxToggleAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+{
+    MainWindow *main_win = Application::get()->get_main_window();
+
+    if (main_win->is_maximized())
+    {
+        main_win->unmaximize();
+    }
+    else
+    {
+        main_win->maximize();
+    }
+}
+
+bool 
+FullscreenAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+{
+    MainWindow *main_win = Application::get()->get_main_window();
+
+    if (main_win->is_fullscreen())
+    {
+        main_win->unfullscreen();
+    }
+    else
+    {
+        main_win->fullscreen();
+    }
+
 }
 
