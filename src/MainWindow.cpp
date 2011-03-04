@@ -1,5 +1,4 @@
 #include <iostream>
-#include <gtksourceviewmm/sourcelanguagemanager.h>
 
 #include "MainWindow.h"
 #include "ViKeyManager.h"
@@ -45,7 +44,9 @@ MainWindow::MainWindow()
 
     add(m_vbox);
 
-    m_vbox.pack_start(m_sourceEditor, true, true);
+    m_editor_area.append_page(m_sourceEditor);
+
+    m_vbox.pack_start(m_editor_area, true, true);
     m_vbox.pack_end(m_statusBar, false, false);
 
     show_all_children();
@@ -61,8 +62,13 @@ ViKeyManager* MainWindow::get_key_manager() const
     return vi;
 }
 
+EditorArea* MainWindow::get_editor_area() 
+{
+    return &m_editor_area;
+}
+
 Gtk::Statusbar*
-MainWindow::get_status_bar()
+MainWindow::get_status_bar() 
 {
     return &m_statusBar;
 }
@@ -86,6 +92,13 @@ bool MainWindow::is_maximized() const
 bool MainWindow::on_key_press_event(GdkEventKey *event)
 {
     Gtk::Widget *focused = get_focus();
+
+    if (!focused)
+    {
+        std::cout << "ERROR: focused = NULL" << std::endl;
+        return false;
+    }
+       
 
     std::cout << G_OBJECT_TYPE_NAME(focused->gobj())
               << " MainWindow::on_key_press " 

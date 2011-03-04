@@ -12,6 +12,7 @@ sourcerer_SOURCES =  main.cc \
 					 ViActions.cpp \
 					 ViTextIter.cpp \
 					 Editor.cpp \
+					 EditorArea.cpp \
 					 Search.cpp
 
 

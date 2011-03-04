@@ -2,6 +2,7 @@
 #define SOURCERER_EDITOR_H
 
 #include <gtkmm.h>
+#include <gtksourceviewmm/sourceview.h>
 
 class Editor 
 {

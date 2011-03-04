@@ -2,9 +2,9 @@
 #define EDITOR_MAIN_WINDOW_H
 
 #include <gtkmm.h>
-#include <gtksourceviewmm/sourceview.h>
 
 #include "Editor.h"
+#include "EditorArea.h"
 
 class ViKeyManager;
 
@@ -16,7 +16,8 @@ class MainWindow : public Gtk::Window
 
         ViKeyManager* get_key_manager() const;
 
-        Gtk::Statusbar* get_status_bar();
+        EditorArea* get_editor_area(); 
+        Gtk::Statusbar* get_status_bar(); 
 
         bool is_fullscreen() const;
         bool is_maximized() const;
@@ -26,6 +27,7 @@ class MainWindow : public Gtk::Window
         bool on_key_press_event(GdkEventKey *event);
 
         SourceEditor m_sourceEditor;
+        EditorArea m_editor_area;
 
         Gtk::Statusbar m_statusBar;
         Gtk::VBox m_vbox;

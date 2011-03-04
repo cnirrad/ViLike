@@ -5,7 +5,6 @@
 
 SourceEditor::SourceEditor()
 {
-
     Glib::RefPtr< gtksourceview::SourceBuffer > buffer = 
             gtksourceview::SourceBuffer::create(Glib::RefPtr<Gtk::TextTagTable>());
 
