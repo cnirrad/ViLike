@@ -596,33 +596,48 @@ WordMotionAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustri
 }
 
 bool 
-MaxToggleAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+WindowToggleAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
     MainWindow *main_win = Application::get()->get_main_window();
 
-    if (main_win->is_maximized())
-    {
-        main_win->unmaximize();
-    }
-    else
-    {
-        main_win->maximize();
-    }
-}
+    Gdk::WindowState s = main_win->get_window()->get_state();
 
-bool 
-FullscreenAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
-{
-    MainWindow *main_win = Application::get()->get_main_window();
+    bool is_on = false;
 
-    if (main_win->is_fullscreen())
+    if ( ( s & m_state ) == m_state )
     {
-        main_win->unfullscreen();
+        is_on = true;
     }
-    else
+
+    switch( m_state )
     {
-        main_win->fullscreen();
-    }
+        case Gdk::WINDOW_STATE_MAXIMIZED:
+            if (is_on)
+                main_win->unmaximize();
+            else
+                main_win->maximize();
+            break;
+        case Gdk::WINDOW_STATE_FULLSCREEN:
+            if (is_on)
+                main_win->unfullscreen();
+            else
+                main_win->fullscreen();
+            break;
+        case Gdk::WINDOW_STATE_STICKY:
+            if (is_on)
+                main_win->get_window()->unstick();
+            else
+                main_win->get_window()->stick();
+            break;
+        case Gdk::WINDOW_STATE_ICONIFIED:
+            if (is_on)
+                main_win->get_window()->deiconify();
+            else
+                main_win->get_window()->iconify();
+            break;
+        default:
+            break;
+    };
 
 }
 

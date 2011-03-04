@@ -132,6 +132,8 @@ void setup_vi_keybindings(MainWindow *win)
     //
     //  Window management
     //
-    vi->map_key( vi_normal, "<C-A-m>", new MaxToggleAction( vi ));
-    vi->map_key( vi_normal, "<C-A-f>", new FullscreenAction( vi ));
+    vi->map_key( vi_normal, "<C-A-m>", new WindowToggleAction( vi, Gdk::WINDOW_STATE_MAXIMIZED ));
+    vi->map_key( vi_normal, "<C-A-M>", new WindowToggleAction( vi, Gdk::WINDOW_STATE_ICONIFIED ));
+    vi->map_key( vi_normal, "<C-A-f>", new WindowToggleAction( vi, Gdk::WINDOW_STATE_FULLSCREEN ));
+    vi->map_key( vi_normal, "<C-A-s>", new WindowToggleAction( vi, Gdk::WINDOW_STATE_STICKY ));
 }

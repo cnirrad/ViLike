@@ -250,21 +250,15 @@ class WordMotionAction : public MotionAction {
         bool m_forward;
 };
 
-class MaxToggleAction : public ExecutableAction {
+class WindowToggleAction : public ExecutableAction {
     public:
-        MaxToggleAction( ViKeyManager *vi ) :
-            ExecutableAction( vi )
+        WindowToggleAction( ViKeyManager *vi, Gdk::WindowState s ) :
+            ExecutableAction( vi ), m_state( s )
         {
         }
         virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-};
 
-class FullscreenAction : public ExecutableAction {
-    public:
-        FullscreenAction( ViKeyManager *vi ) :
-            ExecutableAction( vi )
-        {
-        }
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+    protected:
+        Gdk::WindowState m_state;
 };
 #endif
