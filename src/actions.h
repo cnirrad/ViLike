@@ -261,4 +261,19 @@ class WindowToggleAction : public ExecutableAction {
     protected:
         Gdk::WindowState m_state;
 };
+
+class NextTabAction : public ExecutableAction {
+    public:
+        NextTabAction( ViKeyManager *vi, bool forward ) :
+            ExecutableAction( vi ), 
+            m_forward( forward )
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+
+    protected:
+        bool m_forward;
+};
+
 #endif

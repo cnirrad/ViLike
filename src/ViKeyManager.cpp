@@ -273,6 +273,7 @@ bool ViKeyManager::on_key_release( GdkEventKey *event)
 Glib::ustring ViKeyManager::key_to_str( GdkEventKey *event )
 {
     Glib::ustring key_str;
+    bool use_shift = false;
 
     if ( event->keyval == GDK_Shift_L || event->keyval == GDK_Shift_R )
     {
@@ -289,6 +290,12 @@ Glib::ustring ViKeyManager::key_to_str( GdkEventKey *event )
     {
         int num = event->keyval - (GDK_F1 - 1);
         key_str = "F" + Glib::ustring::format(num);
+        use_shift = true;
+    }
+    else if (event->keyval == GDK_ISO_Left_Tab)
+    {
+        key_str = "<S-C-Tab>";
+        return key_str;
     }
     else
     {
@@ -297,6 +304,7 @@ Glib::ustring ViKeyManager::key_to_str( GdkEventKey *event )
             if ( vi_key_map[i].keyval == event->keyval )
             {
                 key_str = vi_key_map[i].string;
+                use_shift = true;
                 break;
             }
         }
@@ -318,6 +326,11 @@ Glib::ustring ViKeyManager::key_to_str( GdkEventKey *event )
     if ((event->state & GDK_CONTROL_MASK) == GDK_CONTROL_MASK)
     {
         key_str = "C-" + key_str;              
+    }
+
+    if (use_shift && (event->state & GDK_SHIFT_MASK) == GDK_SHIFT_MASK)
+    {
+        key_str = "S-" + key_str;
     }
 
     //

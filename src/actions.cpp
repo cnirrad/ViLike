@@ -641,3 +641,50 @@ WindowToggleAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &p
 
 }
 
+bool
+NextTabAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+{
+    //
+    //  This should go up the widget heirarchy to find the first
+    //  notebook, but for now we'll just go straight to the EditorArea
+    //
+    EditorArea *e = Application::get()->get_main_window()->get_editor_area();
+
+    int num_pages = e->get_n_pages();
+    int cur_page = e->get_current_page();
+
+    if (cur_page == -1)
+        return false;
+
+    if (m_forward)
+    {
+        if (cur_page == num_pages - 1)
+        {
+            //
+            //  Wrap
+            //
+            e->set_current_page(0);
+        }
+        else
+        {
+            e->next_page();
+        }
+    }
+    else
+    {
+        if (cur_page == 0)
+        {
+            //
+            //  Wrap
+            //
+            e->set_current_page(num_pages - 1);
+        }
+        else
+        {
+            e->prev_page();
+        }
+    }
+
+    return true;
+}
+

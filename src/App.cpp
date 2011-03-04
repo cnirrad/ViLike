@@ -136,4 +136,8 @@ void setup_vi_keybindings(MainWindow *win)
     vi->map_key( vi_normal, "<C-A-M>", new WindowToggleAction( vi, Gdk::WINDOW_STATE_ICONIFIED ));
     vi->map_key( vi_normal, "<C-A-f>", new WindowToggleAction( vi, Gdk::WINDOW_STATE_FULLSCREEN ));
     vi->map_key( vi_normal, "<C-A-s>", new WindowToggleAction( vi, Gdk::WINDOW_STATE_STICKY ));
+    vi->map_key( vi_normal, "<C-Tab>", new NextTabAction( vi, true ));
+    vi->map_key( vi_normal, "<S-C-Tab>", new NextTabAction( vi, false ));
+
+
 }
