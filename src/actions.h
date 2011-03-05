@@ -2,7 +2,7 @@
 #define ACTIONS_H
 
 #include "ViKeyManager.h"
-#include "ViActions.h"
+#include "ViMotionAction.h"
 
 
 class MovementAction : public MotionAction {

@@ -6,11 +6,15 @@ bin_PROGRAMS = sourcerer
 sourcerer_SOURCES =  main.cc \
 					 App.cpp \
 					 MainWindow.cpp \
-					 ViKeyManager.cpp \
 					 actions.cpp \
 					 utils.cpp \
-					 ViActions.cpp \
+					 Vi.cpp \
+					 ViKeyManager.cpp \
+					 ViMotionAction.cpp \
 					 ViTextIter.cpp \
+					 ViCommandMode.cpp \
+					 ViNormalMode.cpp \
+					 ViInsertMode.cpp \
 					 Editor.cpp \
 					 EditorArea.cpp \
 					 Search.cpp

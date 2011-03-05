@@ -1,4 +1,4 @@
-#include "ViActions.h"
+#include "ViMotionAction.h"
 #include "ViKeyManager.h"
 #include "utils.h"
 
@@ -24,7 +24,10 @@ MotionAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 }
 
 bool
-MotionAction::execute_as_subcommand(Gtk::Widget *w, ViActionContext *context)
+MotionAction::execute_as_subcommand(Gtk::Widget *w, 
+                                    ExecutableAction *a,
+                                    int count,
+                                    Glib::ustring &params)
 {
     //
     //  If waiting for a motion, then extend selection will be
@@ -33,12 +36,11 @@ MotionAction::execute_as_subcommand(Gtk::Widget *w, ViActionContext *context)
     //
     m_ext_sel = true;
 
-    perform_motion(w, context->get_count(), context->get_param());
+    perform_motion(w, count, params);
 
-    if (context)
+    if (a)
     {
-        ExecutableAction *a = context->get_action();
-        a->execute(w, context->get_count(), context->get_param()); 
+        a->execute(w, count, params);
     }
 
     //

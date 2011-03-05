@@ -1,5 +1,7 @@
 #include "utils.h"
 
+#include "App.h"
+
 
 bool is_text_widget( Gtk::Widget *w ) 
 {
@@ -46,6 +48,13 @@ get_selected_text( Glib::RefPtr<Gtk::TextBuffer> buffer )
         gunichar ch = get_cursor_iter(buffer).get_char();
         return Glib::ustring(1, ch);
     }
+}
+
+Gtk::Widget *
+get_focused_widget()
+{
+    Gtk::Widget *w = Application::get()->get_main_window()->get_focus();
+    return w;
 }
 
 void set_cursor( Gtk::TextBuffer::iterator location, bool ext_sel )

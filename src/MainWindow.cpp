@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "MainWindow.h"
+#include "Vi.h"
 #include "ViKeyManager.h"
 #include "utils.h"
 
@@ -106,7 +107,7 @@ bool MainWindow::on_key_press_event(GdkEventKey *event)
               << " MainWindow::on_key_press " 
               << event->hardware_keycode 
               << ", " << event->keyval
-              << ", " << vi->key_to_str( event )
+              << ", " << key_to_str( event )
               << std::endl;
 
     return vi->on_key_press( event );

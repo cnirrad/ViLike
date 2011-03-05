@@ -24,7 +24,10 @@ get_cursor_iter( Glib::RefPtr<Gtk::TextBuffer> buffer );
 Glib::ustring
 get_selected_text( Glib::RefPtr<Gtk::TextBuffer> buffer );
 
-bool iter_next( Gtk::TextBuffer::iterator &iter, GtkDirectionType dir );
+Gtk::Widget *
+get_focused_widget();
+
+//bool iter_next( Gtk::TextBuffer::iterator &iter, GtkDirectionType dir );
 
 /**
  * Sets the cursor position to location. If ext_sel is true, 

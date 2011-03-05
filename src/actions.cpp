@@ -65,8 +65,7 @@ ModeAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
             count_modifier = 1;
         m_move_act->execute(w, count_modifier, params);
     }
-    m_vi->set_mode(m_mode, w);
-    m_vi->clear_key_buffer();
+    m_vi->set_mode(m_mode);
 
     return true;
 }
@@ -185,7 +184,7 @@ bool
 ChangeAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
 {
     yank(m_vi, w, true); 
-    m_vi->set_mode(vi_insert, w);
+    m_vi->set_mode(vi_insert);
 
     return true;
 }
@@ -256,7 +255,7 @@ GotoLineAction::perform_motion( Gtk::Widget *w, int line, Glib::ustring &params 
         //  The count from the Vi Key manager will still be zero if
         //  not count was given.
         //
-        if (m_line == -1 && m_vi->get_count() == 0) 
+        if (m_line == -1 ) // && m_vi->get_count() == 0) 
         {
             line = buffer->get_line_count();
         }

@@ -3,7 +3,7 @@
 
 #include "App.h"
 #include "ViKeyManager.h"
-#include "ViActions.h"
+#include "ViMotionAction.h"
 #include "actions.h"
 
 Application *Application::self = 0;
@@ -139,5 +139,9 @@ void setup_vi_keybindings(MainWindow *win)
     vi->map_key( vi_normal, "<C-Tab>", new NextTabAction( vi, true ));
     vi->map_key( vi_normal, "<S-C-Tab>", new NextTabAction( vi, false ));
 
+    //
+    //  Command Mode
+    //
+    vi->map_key( vi_normal, ":", new ModeAction( vi, vi_command ));
 
 }
