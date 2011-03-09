@@ -27,8 +27,6 @@ get_selected_text( Glib::RefPtr<Gtk::TextBuffer> buffer );
 Gtk::Widget *
 get_focused_widget();
 
-//bool iter_next( Gtk::TextBuffer::iterator &iter, GtkDirectionType dir );
-
 /**
  * Sets the cursor position to location. If ext_sel is true, 
  * a selection will be made from the current cursor location
@@ -37,5 +35,26 @@ get_focused_widget();
 void set_cursor( Gtk::TextBuffer::iterator location, bool ext_sel );
 
 void set_cursor_at_line( Glib::RefPtr<Gtk::TextBuffer> buffer, int line, bool ext_sel );
+
+/**
+ *  converts a ustring to type T
+ *
+ *  For example:
+ *      int result;
+ *      Glib::ustring str("123");
+ *      result = convert<int>(str);
+ */
+template <class T>
+inline T convert(const Glib::ustring &str)
+{
+    T result;
+
+    std::stringstream ss;
+    ss << str.raw();
+    ss >> result;
+
+    return result;
+}
+
 
 #endif

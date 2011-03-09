@@ -12,6 +12,8 @@ class Application
 
         MainWindow* get_main_window();
 
+        Editor* get_current_editor();
+
     protected:
         Application();
 

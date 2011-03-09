@@ -1,4 +1,7 @@
 #include <iostream>
+
+#include "App.h"
+#include "Editor.h"
 #include "ViKeyManager.h"
 #include "ViNormalMode.h"
 #include "ViInsertMode.h"
@@ -202,4 +205,16 @@ void ViKeyManager::set_mode( ViMode m )
 */
 }
 
+void ViKeyManager::perfom_last_search()
+{
+    Editor* ed = Application::get()->get_current_editor();
+
+    ed->search( m_last_search, m_last_search_direction );
+}
+
+void ViKeyManager::set_last_search( const Glib::ustring &search, Direction d )
+{
+    m_last_search = search;
+    m_last_search_direction = d;
+}
 

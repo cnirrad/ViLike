@@ -79,3 +79,4 @@ void set_cursor_at_line( Glib::RefPtr<Gtk::TextBuffer> buffer, int line, bool ex
 
     set_cursor( iter, ext_sel );
 }
+

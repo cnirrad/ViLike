@@ -8,7 +8,8 @@ SourceEditor::SourceEditor()
     Glib::RefPtr< gtksourceview::SourceBuffer > buffer = 
             gtksourceview::SourceBuffer::create(Glib::RefPtr<Gtk::TextTagTable>());
 
-    m_sourceView.set_source_buffer( buffer );
+    set_buffer( buffer );
+
     m_sourceView.set_show_line_numbers( true );
     m_sourceView.set_overwrite( true );
 
@@ -16,7 +17,7 @@ SourceEditor::SourceEditor()
     buffer->set_max_undo_levels(100);
 
     Glib::RefPtr< Gio::File > file = Gio::File::create_for_path( 
-            "/home/darrin/dev/projects/sourcerer/src/actions.cpp");
+            "/home/darrin/dev/projects/Sourcerer/src/actions.cpp");
 
     char *contents;
     gsize length;
@@ -46,5 +47,21 @@ bool SourceEditor::is_dirty() const
 void SourceEditor::set_buffer( Glib::RefPtr< gtksourceview::SourceBuffer > buffer )
 {
     m_buffer = buffer;
+    m_sourceView.set_source_buffer( buffer );
+    m_search.set_buffer( buffer );
+}
+
+bool SourceEditor::search( const Glib::ustring &pattern,
+                           Direction direction,
+                           bool ext_sel )
+{
+    ViTextIter cursor = get_cursor_iter( m_buffer );
+    if (m_search.search( pattern, cursor, direction ))
+    {
+        set_cursor( cursor, ext_sel );
+        return true;
+    }
+
+    return false;
 }
 

@@ -2,8 +2,7 @@
 #include "Search.h"
 #include "ViTextIter.h"
 
-SearchSupport::SearchSupport( Glib::RefPtr<Gtk::TextBuffer> buffer ) :
-    m_buffer( buffer )
+SearchSupport::SearchSupport()
 {
 
 }
@@ -13,10 +12,21 @@ SearchSupport::~SearchSupport()
     m_matches.clear();
 }
 
+void SearchSupport::set_buffer( Glib::RefPtr<Gtk::TextBuffer> buffer )
+{
+    m_buffer = buffer;
+}
+
 bool SearchSupport::search( const Glib::ustring &pattern,
                             ViTextIter &start,
                             Direction direction )
 {
+    if (m_buffer == NULL)
+    {
+        g_print("ERROR: Buffer not set.\n");
+        return false;
+    }
+
     if (!find_all(pattern))
     {
         g_print("No matches found.\n");

@@ -51,6 +51,8 @@ class ViKeyManager
          */
         void set_mode( ViMode mode );
 
+        void perfom_last_search();
+        void set_last_search( const Glib::ustring &search, Direction d );
 
     private:
         ViMode m_mode;
@@ -64,6 +66,8 @@ class ViKeyManager
         ViUserMessageArea *m_msg_area;
 
         Glib::ustring m_last_key;
+        Glib::ustring m_last_search;
+        Direction m_last_search_direction;
 };
 
 

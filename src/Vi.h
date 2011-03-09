@@ -24,6 +24,12 @@ enum ActionFlags {
     is_motion = 0x08
 };
 
+enum Direction 
+{
+    Forward,
+    Backward
+};
+
 class ExecutableAction;
 
 //

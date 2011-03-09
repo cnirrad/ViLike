@@ -37,6 +37,18 @@ Application::Application()
 {
 }
 
+Editor* Application::get_current_editor()
+{
+    EditorArea* editor_area = m_main_window->get_editor_area(); 
+
+    int current = editor_area->get_current_page();
+
+    Gtk::Widget *w = editor_area->get_nth_page(current);
+    Editor *ed = dynamic_cast<Editor*>(w);
+
+    return ed;
+}
+
 void setup_vi_keybindings(MainWindow *win) 
 {
     ViKeyManager *vi = win->get_key_manager();
@@ -142,6 +154,9 @@ void setup_vi_keybindings(MainWindow *win)
     //
     //  Command Mode
     //
-    vi->map_key( vi_normal, ":", new ModeAction( vi, vi_command ));
+    ModeAction *cmdMode = new ModeAction( vi, vi_command );
+    vi->map_key( vi_normal, ":", cmdMode );
+    vi->map_key( vi_normal, "/", cmdMode );
+    vi->map_key( vi_normal, "?", cmdMode );
 
 }

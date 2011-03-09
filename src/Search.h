@@ -2,26 +2,17 @@
 #define SOURCERER_SEARCH_H
 
 #include <gtkmm.h>
+
+#include "Vi.h"
 #include "ViTextIter.h"
 
 class SearchSupport
 {
     public:
-        SearchSupport(Glib::RefPtr<Gtk::TextBuffer> buffer);
+        SearchSupport();
         virtual ~SearchSupport();
 
-        /**
-         * Direction:
-         * @Forward: search forward
-         * @Backward: search backward
-         *
-         * Enum used to define the direction of the search.
-         */
-        enum Direction 
-        {
-            Forward,
-            Backward
-        };
+        void set_buffer(Glib::RefPtr<Gtk::TextBuffer> buffer);
 
         /**
          * search:
