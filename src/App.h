@@ -14,6 +14,11 @@ class Application
 
         Editor* get_current_editor();
 
+        void quit()
+        {
+            Gtk::Main::quit();
+        }
+
     protected:
         Application();
 

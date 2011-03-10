@@ -151,6 +151,7 @@ void setup_vi_keybindings(MainWindow *win)
     vi->map_key( vi_normal, "<C-Tab>", new NextTabAction( vi, true ));
     vi->map_key( vi_normal, "<S-C-Tab>", new NextTabAction( vi, false ));
 
+    vi->map_key( vi_command, ":q", new QuitAction( vi ));
     vi->map_key( vi_command, ":tabNext", new NextTabAction( vi, true ));
 
     //

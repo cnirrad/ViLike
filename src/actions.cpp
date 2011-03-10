@@ -666,3 +666,8 @@ NextTabAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params
     return true;
 }
 
+bool QuitAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+{
+    Application::get()->quit();
+}
+

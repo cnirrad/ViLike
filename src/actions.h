@@ -276,4 +276,14 @@ class NextTabAction : public ExecutableAction {
         bool m_forward;
 };
 
+class QuitAction : public ExecutableAction {
+    public:
+        QuitAction( ViKeyManager *vi ) :
+            ExecutableAction( vi )
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+};
+
 #endif
