@@ -17,17 +17,20 @@ class ViCommandMode : public ViModeHandler
                       const Glib::ustring &key,
                       ExecutableAction *a );
 
-        void execute_command(const Glib::ustring &cmd);
+        void execute(const Glib::ustring &cmd);
 
     protected:
         void execute_search(const Glib::ustring &pattern, char begin);
+        void execute_command(const Glib::ustring &cmd);
 
         void add_history(const Glib::ustring &cmd);
         Glib::ustring next_history(Direction d, char begin);
 
         ViKeyManager *m_vi;
         Glib::ustring m_cmd;
+
         KeyActionMap m_keyMap;
+        KeyActionMap m_commandMap;
 
         std::list<std::string> m_history;
         std::list<std::string>::iterator m_history_it;

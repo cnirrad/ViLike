@@ -42,7 +42,7 @@ ViCommandMode::handle_key_press( const Glib::ustring &key_str )
     }
     else if (key_str == "<CR>")
     {
-        execute_command( m_cmd );
+        execute( m_cmd );
 
         m_vi->set_mode(vi_normal);
         return true;
@@ -75,12 +75,16 @@ ViCommandMode::handle_key_press( const Glib::ustring &key_str )
 }
 
 void ViCommandMode::map_key( const Glib::ustring &widget_type, 
-                            const Glib::ustring &key,
-                            ExecutableAction *a )
+                             const Glib::ustring &key,
+                             ExecutableAction *a )
 {
+    if (key[0] == ':')
+        m_commandMap[key.substr(1)] = a;
+    else
+        m_keyMap[key] = a;
 }
 
-void ViCommandMode::execute_command(const Glib::ustring &cmd)
+void ViCommandMode::execute(const Glib::ustring &cmd)
 {
     add_history( cmd );
 
@@ -103,7 +107,7 @@ void ViCommandMode::execute_command(const Glib::ustring &cmd)
     }
     else if (ch == ':')
     {
-
+        execute_command(rest);
     }
 }
 
@@ -143,12 +147,28 @@ void ViCommandMode::execute_search(const Glib::ustring &cmd, char begin )
     
 }
 
+void ViCommandMode::execute_command(const Glib::ustring &cmd)
+{
+    // TODO: more intelligent parsing
+    Glib::ustring params;
+    int idx = cmd.find_first_of(' ');
+    if (idx > 0)
+        cmd.substr(idx);
+
+    ExecutableAction *act = m_commandMap[cmd];
+    if (act)
+    {
+        Gtk::Widget *w = get_focused_widget();
+        act->execute(w, 1, params);
+    }
+}
+
 void ViCommandMode::add_history(const Glib::ustring &cmd)
 {
     if (!m_history.empty())
         m_history.pop_front();
     m_history.push_front( cmd.raw() );
-    m_history.push_front( "BOGUS" );
+    m_history.push_front( "BOGUS" );    // Hack - the front entry is never shown
 
     if (m_history.size() >= 50)         // TODO: add config option
     {
