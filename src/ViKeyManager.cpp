@@ -48,7 +48,7 @@ bool ViKeyManager::execute( Glib::ustring &cmds )
 
 bool ViKeyManager::execute( Glib::ustring &cmds, ViMode mode )
 {
-
+    set_mode( mode );
     GdkEventKey* event;
 
     for (int idx = 0; idx < cmds.length(); ++idx)
