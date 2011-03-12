@@ -250,6 +250,7 @@ GotoLineAction::perform_motion( Gtk::Widget *w, int line, Glib::ustring &params 
     if (line == -1)
         line = m_line;
 
+
     if (is_text_widget(w))
     {
         Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
@@ -261,10 +262,11 @@ GotoLineAction::perform_motion( Gtk::Widget *w, int line, Glib::ustring &params 
         //  The count from the Vi Key manager will still be zero if
         //  not count was given.
         //
-        if (m_line == -1 ) // && m_vi->get_count() == 0) 
+        if (line == -1 ) // && m_vi->get_count() == 0) 
         {
             line = buffer->get_line_count();
         }
+
         set_cursor_at_line( buffer, line, m_ext_sel );
     }
 
