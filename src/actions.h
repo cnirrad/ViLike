@@ -62,13 +62,14 @@ class YankAction : public ExecutableAction {
 
 class PutAction : public ExecutableAction {
     public:
-        PutAction( ViKeyManager *vi ) :
-            ExecutableAction( vi )
+        PutAction( ViKeyManager *vi, bool next ) :
+            ExecutableAction( vi ), m_next(next)
         {
         }
 
         virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 
+        bool m_next;
 };
 
 class DeleteAction : public ExecutableAction {
@@ -279,6 +280,16 @@ class NextTabAction : public ExecutableAction {
 class QuitAction : public ExecutableAction {
     public:
         QuitAction( ViKeyManager *vi ) :
+            ExecutableAction( vi )
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+};
+
+class OpenFileAction : public ExecutableAction {
+    public:
+        OpenFileAction( ViKeyManager *vi ) :
             ExecutableAction( vi )
         {
         }

@@ -144,7 +144,12 @@ PutAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
     {
         Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w);
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
-        buffer->insert_at_cursor(text);
+
+        ViTextIter cursor = get_cursor_iter( buffer ); 
+        if (m_next)
+            cursor.forward_char();
+
+        buffer->insert(cursor, text);
     }
     return true;
 }
@@ -669,5 +674,24 @@ NextTabAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params
 bool QuitAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
     Application::get()->quit();
+}
+
+bool OpenFileAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+{
+    SourceEditor *e = Gtk::manage(new SourceEditor()); 
+
+    EditorArea *ea = Application::get()->get_main_window()->get_editor_area();
+    ea->add_editor(e);
+
+    if (e->open(params))
+    {
+        g_print("Added page for file %s\n", params.data());
+    }
+    else
+    {
+        g_print("Error could not open file %s\n", params.data());
+        m_vi->show_error("Error: could not open file %s", params.data());
+    }
+    return true;
 }
 

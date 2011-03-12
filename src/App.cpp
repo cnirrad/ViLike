@@ -1,5 +1,6 @@
 
 #include <gtkmm.h>
+#include <gtksourceviewmm.h>
 
 #include "App.h"
 #include "ViKeyManager.h"
@@ -14,6 +15,26 @@ void
 Application::run(int argc, char **argv)
 {
     Gtk::Main kit(argc, argv);
+
+    gtksourceview::init();
+
+    Glib::RefPtr< gtksourceview::SourceLanguageManager > lm = 
+        gtksourceview::SourceLanguageManager::create();
+
+    g_print("Search paths:\n");
+    std::list<Glib::ustring> paths = lm->get_search_path();
+    std::list<Glib::ustring>::iterator it;
+    for (it = paths.begin(); it != paths.end(); it++)
+    {
+        g_print("%s:", (*it).data());
+    }
+
+    g_print("\nLanguage IDs:\n");
+    std::list<Glib::ustring> ids = lm->get_language_ids();
+    for (it = ids.begin(); it != ids.end(); it++)
+    {
+        g_print("%s,", (*it).data());
+    }
 
     m_main_window = new MainWindow();
     setup_vi_keybindings(m_main_window);
@@ -123,7 +144,8 @@ void setup_vi_keybindings(MainWindow *win)
     vi->map_key( vi_normal, "\"", new ChooseRegistryAction( vi ));
     vi->map_key( vi_normal, "y", new YankAction( vi ));
     vi->map_key( vi_normal, "Y", new KeySequenceAction( vi, "0y$" ));
-    vi->map_key( vi_normal, "p", new PutAction( vi ));
+    vi->map_key( vi_normal, "p", new PutAction( vi, true ));
+    vi->map_key( vi_normal, "P", new PutAction( vi, false ));
     vi->map_key( vi_normal, "d", new DeleteAction( vi ));
     vi->map_key( vi_normal, "D", new KeySequenceAction( vi, "d$" ));
     vi->map_key( vi_normal, "x", new DeleteOneAction( vi ));
@@ -144,15 +166,29 @@ void setup_vi_keybindings(MainWindow *win)
     //
     //  Window management
     //
-    vi->map_key( vi_normal, "<C-A-m>", new WindowToggleAction( vi, Gdk::WINDOW_STATE_MAXIMIZED ));
-    vi->map_key( vi_normal, "<C-A-M>", new WindowToggleAction( vi, Gdk::WINDOW_STATE_ICONIFIED ));
-    vi->map_key( vi_normal, "<C-A-f>", new WindowToggleAction( vi, Gdk::WINDOW_STATE_FULLSCREEN ));
-    vi->map_key( vi_normal, "<C-A-s>", new WindowToggleAction( vi, Gdk::WINDOW_STATE_STICKY ));
-    vi->map_key( vi_normal, "<C-Tab>", new NextTabAction( vi, true ));
-    vi->map_key( vi_normal, "<S-C-Tab>", new NextTabAction( vi, false ));
+    WindowToggleAction *maxAct = new WindowToggleAction( vi, Gdk::WINDOW_STATE_MAXIMIZED );
+    WindowToggleAction *iconifyAct = new WindowToggleAction( vi, Gdk::WINDOW_STATE_ICONIFIED );
+    WindowToggleAction *fullAct = new WindowToggleAction( vi, Gdk::WINDOW_STATE_FULLSCREEN );
+    WindowToggleAction *stickAct = new WindowToggleAction( vi, Gdk::WINDOW_STATE_STICKY );
+    NextTabAction *nextTab = new NextTabAction( vi, true );
+    NextTabAction *prevTab = new NextTabAction( vi, false );
+
+    vi->map_key( vi_normal, "<C-A-m>", maxAct );
+    vi->map_key( vi_normal, "<C-A-M>", iconifyAct );
+    vi->map_key( vi_normal, "<C-A-f>", fullAct );
+    vi->map_key( vi_normal, "<C-A-s>", stickAct );
+    vi->map_key( vi_normal, "<C-Tab>", nextTab );
+    vi->map_key( vi_normal, "<S-C-Tab>", prevTab );
 
     vi->map_key( vi_command, ":q", new QuitAction( vi ));
-    vi->map_key( vi_command, ":tabNext", new NextTabAction( vi, true ));
+    vi->map_key( vi_command, ":tabNext", nextTab );
+    vi->map_key( vi_command, ":tabPrev", prevTab );
+    vi->map_key( vi_command, ":fullscreen", fullAct );
+    vi->map_key( vi_command, ":minimize", iconifyAct );
+    vi->map_key( vi_command, ":maximize", maxAct );
+
+
+    vi->map_key( vi_command, ":e", new OpenFileAction( vi ));
 
     //
     //  Command Mode

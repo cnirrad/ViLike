@@ -45,9 +45,8 @@ MainWindow::MainWindow()
 
     add(m_vbox);
 
-    m_editor_area.append_page(m_sourceEditor1);
-    m_editor_area.append_page(m_sourceEditor2);
-    m_editor_area.append_page(m_sourceEditor3);
+    m_editor_area.append_page(m_sourceEditor);
+    m_sourceEditor.open("./src/actions.cpp");
 
     m_vbox.pack_start(m_editor_area, true, true);
     m_vbox.pack_end(m_statusBar, false, false);

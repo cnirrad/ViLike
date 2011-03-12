@@ -147,13 +147,23 @@ void ViCommandMode::execute_search(const Glib::ustring &cmd, char begin )
     
 }
 
-void ViCommandMode::execute_command(const Glib::ustring &cmd)
+void ViCommandMode::execute_command(const Glib::ustring &cmd_line)
 {
     // TODO: more intelligent parsing
+    Glib::ustring cmd;
     Glib::ustring params;
-    int idx = cmd.find_first_of(' ');
+    int idx = cmd_line.find_first_of(' ');
     if (idx > 0)
-        cmd.substr(idx);
+    {
+        params = cmd_line.substr(idx+1);
+        cmd = cmd_line.substr(0, idx);
+    }
+    else
+    {
+        cmd = cmd_line;
+    }
+
+    g_print("Command %s with params '%s'\n", cmd.data(), params.data());
 
     ExecutableAction *act = m_commandMap[cmd];
     if (act)
@@ -185,7 +195,8 @@ ViCommandMode::next_history(Direction d, char begin)
         while ( m_history_it != m_history.end() )
         {
             m_history_it++;
-            if ( begin == (*m_history_it)[0])
+            if ( m_history_it != m_history.end() && 
+                    begin == (*m_history_it)[0])
                 break;
         }
     }

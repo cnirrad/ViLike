@@ -11,9 +11,11 @@ class EditorArea : public Gtk::Notebook
         EditorArea();
         virtual ~EditorArea();
 
+        void add_editor(SourceEditor *editor);
 
     protected:
 
+        std::map<Glib::ustring, SourceEditor*> m_editors;
 };
 
 #endif

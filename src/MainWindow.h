@@ -26,9 +26,7 @@ class MainWindow : public Gtk::Window
 
         bool on_key_press_event(GdkEventKey *event);
 
-        SourceEditor m_sourceEditor1;
-        SourceEditor m_sourceEditor2;
-        SourceEditor m_sourceEditor3;
+        SourceEditor m_sourceEditor;
         EditorArea m_editor_area;
 
         Gtk::Statusbar m_statusBar;
