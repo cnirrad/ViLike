@@ -96,7 +96,8 @@ ViNormalMode::handle_key_press( const Glib::ustring &str )
     //
     //  Handle a count modifier. 
     //
-    if (m_key == str && str[0] >= '0' && str[0] <= '9') {
+    if (m_key == str && str[0] >= '0' && str[0] <= '9') 
+    {
         //
         //  Count modifier not allowed to start with '0'
         //
@@ -118,6 +119,18 @@ ViNormalMode::handle_key_press( const Glib::ustring &str )
         if (m_context->get_action() == NULL)
         {
             m_context->set_action( action );
+        }
+        else if (m_context->get_action() == action)
+        {
+            //
+            //  Double key action, such as 'dd' or 'yy'.
+            //
+            m_key += m_key;
+            action = lookup(m_keyMap, type_str, m_key);
+            if (action != NULL)
+            {
+                m_context->set_action( action );
+            }
         }
         else if (BIT_ON(action->m_flags, is_motion))
         {

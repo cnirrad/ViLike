@@ -59,17 +59,17 @@ get_focused_widget()
 
 void set_cursor( Gtk::TextBuffer::iterator location, bool ext_sel )
 {
-        Glib::RefPtr<Gtk::TextBuffer> buffer = location.get_buffer();
-        if ( ext_sel )
-        {
-            Glib::RefPtr< Gtk::TextBuffer::Mark > sel_bound =
-                                buffer->get_selection_bound();
-            buffer->move_mark( sel_bound, location );
-        }
-        else 
-        {
-            buffer->place_cursor( location );
-        }
+    Glib::RefPtr<Gtk::TextBuffer> buffer = location.get_buffer();
+    if ( ext_sel )
+    {
+        Glib::RefPtr< Gtk::TextBuffer::Mark > sel_bound =
+                            buffer->get_selection_bound();
+        buffer->move_mark( sel_bound, location );
+    }
+    else 
+    {
+        buffer->place_cursor( location );
+    }
 }
 
 void set_cursor_at_line( Glib::RefPtr<Gtk::TextBuffer> buffer, int line, bool ext_sel )

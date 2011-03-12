@@ -143,10 +143,12 @@ void setup_vi_keybindings(MainWindow *win)
     //
     vi->map_key( vi_normal, "\"", new ChooseRegistryAction( vi ));
     vi->map_key( vi_normal, "y", new YankAction( vi ));
+    vi->map_key( vi_normal, "yy", new SelectLineAction( vi, false ) );
     vi->map_key( vi_normal, "Y", new KeySequenceAction( vi, "0y$" ));
     vi->map_key( vi_normal, "p", new PutAction( vi, true ));
     vi->map_key( vi_normal, "P", new PutAction( vi, false ));
     vi->map_key( vi_normal, "d", new DeleteAction( vi ));
+    vi->map_key( vi_normal, "dd", new SelectLineAction( vi, true ));
     vi->map_key( vi_normal, "D", new KeySequenceAction( vi, "d$" ));
     vi->map_key( vi_normal, "x", new DeleteOneAction( vi ));
     vi->map_key( vi_normal, "X", new DeleteOneAction( vi, true ));

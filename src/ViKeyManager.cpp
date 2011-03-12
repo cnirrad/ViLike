@@ -166,14 +166,33 @@ void ViKeyManager::set_current_register( char reg )
     m_current_register = reg;
 }
 
-Glib::ustring ViKeyManager::get_register( char reg )
+ViRegisterValue ViKeyManager::get_register( char reg )
 {
     return m_registers[reg]; 
 }
 
 void ViKeyManager::set_register( char reg, Glib::ustring text )
 {
-    m_registers[reg] = text;
+    set_register( reg, text, vi_characterwise );
+}
+
+void ViKeyManager::set_register( char reg, Glib::ustring text, ViOperatorScope scope )
+{
+    //
+    //  Upper case register values append text
+    //
+    if (isupper( reg ))
+    {
+        reg = tolower( reg ); 
+        ViRegisterValue v = get_register( reg );
+        text = v.text + text;
+    }
+
+    ViRegisterValue val;
+    val.scope = scope;
+    val.text = text;
+
+    m_registers[reg] = val;
 }
 
 ViMode ViKeyManager::get_mode() const

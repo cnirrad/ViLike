@@ -36,8 +36,9 @@ class ViKeyManager
         char get_current_register();
         void set_current_register( char reg );
 
-        Glib::ustring get_register( char reg );
+        ViRegisterValue get_register( char reg );
         void set_register( char reg, Glib::ustring text );
+        void set_register( char reg, Glib::ustring text, ViOperatorScope scope );
 
         /**
          * Gets the current ViMode
@@ -59,7 +60,7 @@ class ViKeyManager
         Gtk::Window *m_window;
 
         char m_current_register;       // the register to use for the next operation. (0x00 means no register) 
-        std::map<char, Glib::ustring> m_registers;
+        std::map<char, ViRegisterValue> m_registers;
 
         ViModeHandler *m_handlers[4];
 

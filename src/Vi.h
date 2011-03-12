@@ -74,6 +74,12 @@ const unsigned int vi_key_map_lgth = sizeof( vi_key_map ) / sizeof( vi_key_map[0
 GdkEventKey* str_to_key(const Glib::ustring &str);
 Glib::ustring key_to_str( GdkEventKey *event );
 
+struct ViRegisterValue
+{
+    ViOperatorScope scope;
+    Glib::ustring text;
+};
+
 /**
  *  Interface class for displaying messages to the user.
  */

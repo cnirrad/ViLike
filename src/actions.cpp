@@ -110,7 +110,7 @@ Glib::ustring yank(ViKeyManager *vi, Gtk::Widget *w, bool del = false, ViOperato
 
         char r = vi->get_current_register();
 
-        vi->set_register(r, text);
+        vi->set_register(r, text, scope);
 
         if (r != 0x00)
             g_print("Set %c with \"%s\"\n", r, text.data());
@@ -137,8 +137,7 @@ PutAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
 {
     char r = m_vi->get_current_register();
 
-    Glib::ustring text = m_vi->get_register(r);
-
+    ViRegisterValue val = m_vi->get_register(r);
 
     if (is_text_widget(w))
     {
@@ -146,10 +145,21 @@ PutAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
         ViTextIter cursor = get_cursor_iter( buffer ); 
-        if (m_next)
-            cursor.forward_char();
 
-        buffer->insert(cursor, text);
+        if (val.scope == vi_characterwise)
+        {
+            if (m_next)
+                cursor.forward_char();
+        }
+        else 
+        {
+            if (m_next)
+                cursor.forward_line();
+            else
+                cursor.set_line_offset(0);
+        }
+
+        buffer->insert(cursor, val.text);
     }
     return true;
 }
@@ -696,4 +706,37 @@ bool OpenFileAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &
     }
     return true;
 }
+
+void
+SelectLineAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params) 
+{
+    if (is_text_widget(w))
+    {
+        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
+
+        ViTextIter cursor = get_cursor_iter( buffer ); 
+        int cur_offset = cursor.get_line_offset();
+    
+        cursor.set_line_offset(0);
+        set_cursor(cursor, false);
+
+        cursor.forward_line();
+        set_cursor(cursor, true);
+
+        yank( m_vi, w, m_del, vi_linewise );
+
+        //
+        //  Move back to the original offset
+        //
+        cursor = get_cursor_iter( buffer );
+        if (cur_offset > cursor.get_chars_in_line())
+        {
+            cur_offset = cursor.get_chars_in_line();
+        }
+        cursor.set_line_offset( cur_offset );
+        set_cursor(cursor, false);
+    }
+}
+
 

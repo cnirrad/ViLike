@@ -297,4 +297,16 @@ class OpenFileAction : public ExecutableAction {
         virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
 };
 
+class SelectLineAction : public MotionAction {
+    public:
+        SelectLineAction( ViKeyManager *vi, bool del ) :
+            MotionAction( vi ), m_del( del )
+        {
+        }
+
+        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+
+        bool m_del;
+};
+
 #endif
