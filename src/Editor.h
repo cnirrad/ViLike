@@ -12,11 +12,17 @@ class Editor
     public:
         virtual bool is_dirty() const = 0;
 
+        virtual bool open(const Glib::ustring &path) = 0;
+
+        virtual bool save() = 0;
+        virtual bool save_as();
+
         virtual bool search( const Glib::ustring &pattern,
                              Direction direction,
                              bool ext_sel = false ) = 0;
 
     protected:
+        Glib::RefPtr< Gio::File > m_file;
 };
 
 
@@ -44,8 +50,6 @@ class SourceEditor : public Editor, public Gtk::VBox
         gtksourceview::SourceView m_sourceView; 
         Glib::RefPtr< gtksourceview::SourceBuffer > m_buffer;
         Gtk::ScrolledWindow m_scrollView;
-
-        Glib::ustring m_filepath;
 
         SearchSupport m_search;
 };
