@@ -44,11 +44,6 @@ SourceEditor::SourceEditor()
     pack_start(m_scrollView, true, true);
 }
 
-Glib::ustring SourceEditor::get_filepath() const
-{
-    return "";
-}
-
 bool SourceEditor::is_dirty() const
 {
     return false;        

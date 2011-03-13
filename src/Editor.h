@@ -21,6 +21,11 @@ class Editor
                              Direction direction,
                              bool ext_sel = false ) = 0;
 
+        Glib::RefPtr< Gio::File > get_file() 
+        {
+            return m_file;
+        }
+
     protected:
         Glib::RefPtr< Gio::File > m_file;
 };
@@ -30,8 +35,6 @@ class SourceEditor : public Editor, public Gtk::VBox
 {
     public:
         SourceEditor();
-
-        Glib::ustring get_filepath() const;
 
         bool is_dirty() const;
 
