@@ -116,7 +116,7 @@ void ViCommandMode::execute_search(const Glib::ustring &cmd, char begin )
 {
     //
     //     /{pattern}/{offset}<CR>
-    // search forward for the [count]'th occurance of
+    // search forward for the [count]'th occurrence of
     // {pattern} and go {offset} lines up or down.
     //
     int count = 1;              
