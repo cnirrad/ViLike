@@ -36,7 +36,7 @@ SourceEditor::SourceEditor()
                             Gtk::POLICY_AUTOMATIC);
 
     m_sourceView.set_show_line_numbers( true );
-    Pango::FontDescription font("monospace");
+    Pango::FontDescription font("monospace 10");
     m_sourceView.modify_font( font );
     //m_sourceView.set_overwrite( true );
 

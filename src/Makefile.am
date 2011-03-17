@@ -17,7 +17,9 @@ sourcerer_SOURCES =  main.cc \
 					 ViInsertMode.cpp \
 					 Editor.cpp \
 					 EditorArea.cpp \
-					 Search.cpp
+					 Search.cpp \
+					 s7.c \
+					 ReplWindow.cpp
 
 
 sourcerer_LDFLAGS = 

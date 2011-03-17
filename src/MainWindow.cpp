@@ -1,6 +1,7 @@
 #include <iostream>
 
 #include "MainWindow.h"
+#include "ReplWindow.h"
 #include "Vi.h"
 #include "ViKeyManager.h"
 #include "utils.h"
@@ -45,11 +46,17 @@ MainWindow::MainWindow()
 
     add(m_vbox);
 
+    m_vbox.pack_start(m_vpane, true, true);
+    m_vbox.pack_end(m_statusBar, false, false);
+
     m_editor_area.append_page(m_sourceEditor);
     m_sourceEditor.open("./src/actions.cpp");
 
-    m_vbox.pack_start(m_editor_area, true, true);
-    m_vbox.pack_end(m_statusBar, false, false);
+    m_info_area_bottom.append_page(m_repl, "REPL");
+
+    m_vpane.pack1(m_editor_area, true, true);
+    m_vpane.pack2(m_info_area_bottom, false, true);
+
 
     show_all_children();
 }
@@ -62,6 +69,18 @@ MainWindow::~MainWindow()
 ViKeyManager* MainWindow::get_key_manager() const
 {
     return vi;
+}
+
+Gtk::Notebook* MainWindow::get_info_area(InfoArea which)
+{
+    if (which == Bottom)
+    {
+        return &m_info_area_bottom;
+    }
+    else 
+    {
+        return &m_info_area_side;
+    }
 }
 
 EditorArea* MainWindow::get_editor_area() 

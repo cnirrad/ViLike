@@ -7,6 +7,7 @@
 #include "ViMotionAction.h"
 #include "actions.h"
 
+
 Application *Application::self = 0;
 
 void setup_vi_keybindings(MainWindow *win);
@@ -17,6 +18,8 @@ Application::run(int argc, char **argv)
     Gtk::Main kit(argc, argv);
 
     gtksourceview::init();
+
+    m_scm = s7_init();
 
     Glib::RefPtr< gtksourceview::SourceLanguageManager > lm = 
         gtksourceview::SourceLanguageManager::create();
@@ -68,6 +71,11 @@ Editor* Application::get_current_editor()
     Editor *ed = dynamic_cast<Editor*>(w);
 
     return ed;
+}
+
+Scheme* Application::get_scheme()
+{
+    return m_scm;
 }
 
 void setup_vi_keybindings(MainWindow *win) 
