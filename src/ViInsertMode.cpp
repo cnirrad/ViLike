@@ -44,6 +44,12 @@ ViInsertMode::handle_key_press( const Glib::ustring &str )
     //
     GdkEventKey *event = str_to_key( str );
 
+    if (!event)
+    {
+        g_print("Insert mode: str_to_key returned NULL\n");
+        return false;
+    }
+
     gboolean ret_val;
     g_signal_emit_by_name( (GtkObject*)w->gobj(), 
                              "key-press-event", 
