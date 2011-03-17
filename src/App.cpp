@@ -129,7 +129,7 @@ void setup_vi_keybindings(MainWindow *win)
     //  Insert/append
     //
     vi->map_key( vi_normal, "A", new ModeAction( eol_act, vi, vi_insert ));
-    vi->map_key( vi_normal, "a", new ModeAction( left_act, vi, vi_insert ));
+    vi->map_key( vi_normal, "a", new ModeAction( right_act, vi, vi_insert ));
     vi->map_key( vi_normal, "i", new ModeAction(vi, vi_insert));
     vi->map_key( vi_normal, "I", new KeySequenceAction( vi, "^i" ));
     vi->map_key( vi_normal, "R", new ReplaceAction(vi));
@@ -182,6 +182,10 @@ void setup_vi_keybindings(MainWindow *win)
     WindowToggleAction *stickAct = new WindowToggleAction( vi, Gdk::WINDOW_STATE_STICKY );
     NextTabAction *nextTab = new NextTabAction( vi, true );
     NextTabAction *prevTab = new NextTabAction( vi, false );
+    ChangeFocusAction *focusDownAct = new ChangeFocusAction( vi, Gtk::DIR_DOWN );
+    ChangeFocusAction *focusUpAct = new ChangeFocusAction( vi, Gtk::DIR_UP );
+    ChangeFocusAction *focusLeftAct = new ChangeFocusAction( vi, Gtk::DIR_LEFT );
+    ChangeFocusAction *focusRightAct = new ChangeFocusAction( vi, Gtk::DIR_RIGHT );
 
     vi->map_key( vi_normal, "<C-A-m>", maxAct );
     vi->map_key( vi_normal, "<C-A-M>", iconifyAct );
@@ -189,6 +193,11 @@ void setup_vi_keybindings(MainWindow *win)
     vi->map_key( vi_normal, "<C-A-s>", stickAct );
     vi->map_key( vi_normal, "<C-Tab>", nextTab );
     vi->map_key( vi_normal, "<S-C-Tab>", prevTab );
+
+    vi->map_key( vi_normal, "<C-j>", focusDownAct );
+    vi->map_key( vi_normal, "<C-h>", focusLeftAct );
+    vi->map_key( vi_normal, "<C-k>", focusUpAct );
+    vi->map_key( vi_normal, "<C-l>", focusRightAct );
 
     vi->map_key( vi_command, ":q", new QuitAction( vi ));
     vi->map_key( vi_command, ":tabNext", nextTab );

@@ -309,4 +309,16 @@ class SelectLineAction : public MotionAction {
         bool m_del;
 };
 
+class ChangeFocusAction : public ExecutableAction {
+    public:
+        ChangeFocusAction( ViKeyManager *vi, Gtk::DirectionType dir ) :
+            ExecutableAction( vi ), m_dir( dir )
+        {
+        }
+
+        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
+
+        Gtk::DirectionType m_dir;
+};
+
 #endif

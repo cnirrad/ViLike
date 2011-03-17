@@ -739,4 +739,13 @@ SelectLineAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustri
     }
 }
 
+bool
+ChangeFocusAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+{
+    MainWindow *shell = Application::get()->get_main_window();
+
+    shell->child_focus( m_dir );
+
+    return true;
+}
 
