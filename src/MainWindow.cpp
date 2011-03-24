@@ -49,8 +49,9 @@ MainWindow::MainWindow()
     m_vbox.pack_start(m_vpane, true, true);
     m_vbox.pack_end(m_statusBar, false, false);
 
-    m_editor_area.append_page(m_sourceEditor);
+    //m_editor_area.append_page(m_sourceEditor);
     m_sourceEditor.open("./src/actions.cpp");
+    m_editor_area.add_editor(&m_sourceEditor);
 
     m_info_area_bottom.append_page(m_repl, "REPL");
 
