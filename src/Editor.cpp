@@ -121,6 +121,7 @@ bool SourceEditor::search( const Glib::ustring &pattern,
     if (m_search.search( pattern, cursor, direction ))
     {
         set_cursor( cursor, ext_sel );
+        m_sourceView.scroll_to( cursor );
         return true;
     }
 

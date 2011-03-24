@@ -24,7 +24,7 @@ MovementAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring
 
     if (is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
         ViTextIter cursor = get_cursor_iter( buffer ); 
@@ -76,7 +76,7 @@ ReplaceAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params
 {
     if (is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w);
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w);
         m_vi->set_mode(vi_insert);        
         view->set_overwrite(true);
     }
@@ -99,7 +99,7 @@ Glib::ustring yank(ViKeyManager *vi, Gtk::Widget *w, bool del = false, ViOperato
     Glib::ustring text;
     if (is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w);
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w);
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
         Gtk::TextIter start;
@@ -141,7 +141,7 @@ PutAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
 
     if (is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w);
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w);
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
         ViTextIter cursor = get_cursor_iter( buffer ); 
@@ -179,7 +179,7 @@ DeleteOneAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &par
 
     if (is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
         ViTextIter end = get_cursor_iter( buffer ); 
@@ -210,7 +210,7 @@ CreateMarkAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &pa
 {
     if (is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
         ViTextIter it = get_cursor_iter( buffer ); 
@@ -234,7 +234,7 @@ GotoMarkAction::perform_motion( Gtk::Widget *w, int count_modifier, Glib::ustrin
 
     if (is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
         Glib::RefPtr< Gtk::TextBuffer::Mark > mark = 
@@ -263,7 +263,7 @@ GotoLineAction::perform_motion( Gtk::Widget *w, int line, Glib::ustring &params 
 
     if (is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
         //
@@ -293,7 +293,7 @@ InsertLineAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &par
 {
     if (is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
         
         Glib::ustring eol("\n");
@@ -320,7 +320,7 @@ FindAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &pa
 
     if (is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
         
         ViTextIter cursor = get_cursor_iter( buffer ); 
@@ -363,7 +363,7 @@ UndoAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
     if ( is_source_view( w ) )
     { 
         gtksourceview::SourceView *view = 
-            dynamic_cast<gtksourceview::SourceView*>(w); 
+            static_cast<gtksourceview::SourceView*>(w); 
 
         Glib::RefPtr< gtksourceview::SourceBuffer > buffer = 
             view->get_source_buffer();
@@ -380,7 +380,7 @@ RedoAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
     if ( is_source_view( w ) )
     { 
         gtksourceview::SourceView *view = 
-            dynamic_cast<gtksourceview::SourceView*>(w); 
+            static_cast<gtksourceview::SourceView*>(w); 
 
         Glib::RefPtr< gtksourceview::SourceBuffer > buffer = 
             view->get_source_buffer();
@@ -400,7 +400,7 @@ MatchBracketAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ust
     }
 
     gtksourceview::SourceView *view = 
-        dynamic_cast<gtksourceview::SourceView*>(w); 
+        static_cast<gtksourceview::SourceView*>(w); 
     Glib::RefPtr< gtksourceview::SourceBuffer > buffer = 
         view->get_source_buffer();
     ViTextIter iter = get_cursor_iter( buffer ); 
@@ -483,7 +483,7 @@ SearchWordUnderCursorAction::perform_motion(Gtk::Widget *w, int count_modifier, 
 {
     if (is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
         
         ViTextIter cursor = get_cursor_iter( buffer ); 
@@ -520,7 +520,7 @@ SwapCaseAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &param
 {
     if (is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
         char ch;    
@@ -573,7 +573,7 @@ WordMotionAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustri
 
     if (is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
         ViTextIter cursor = get_cursor_iter( buffer ); 
@@ -727,7 +727,7 @@ SelectLineAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustri
 {
     if (is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
         ViTextIter cursor = get_cursor_iter( buffer ); 

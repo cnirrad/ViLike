@@ -17,7 +17,7 @@ MotionAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
     
     if (is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w);
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w);
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
         view->scroll_to( buffer->get_insert() );
     }
@@ -50,7 +50,7 @@ MotionAction::execute_as_subcommand(Gtk::Widget *w,
     //
     if (m_ext_sel && m_vi->get_mode() != vi_visual && is_text_widget(w))
     {
-        Gtk::TextView *view = dynamic_cast<Gtk::TextView*>(w); 
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
 
         Gtk::TextBuffer::iterator it = get_cursor_iter( buffer ); 
