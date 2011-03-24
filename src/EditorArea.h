@@ -12,6 +12,9 @@ class EditorArea : public Gtk::Notebook
         virtual ~EditorArea();
 
         void add_editor(SourceEditor *editor);
+        SourceEditor* get_editor_for_file(Glib::ustring &path);
+
+        void close_editor(SourceEditor *editor);
 
     protected:
 

@@ -208,6 +208,7 @@ void setup_vi_keybindings(MainWindow *win)
 
 
     vi->map_key( vi_command, ":e", new OpenFileAction( vi ));
+    vi->map_key( vi_command, ":bd", new CloseFileAction( vi ));
 
     //
     //  Command Mode

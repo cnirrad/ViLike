@@ -707,6 +707,21 @@ bool OpenFileAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &
     return true;
 }
 
+bool
+CloseFileAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params) 
+{
+    SourceEditor *ed = 
+        static_cast<SourceEditor*>(Application::get()->get_current_editor());
+    EditorArea *ea = Application::get()->get_main_window()->get_editor_area();
+
+    if (ed->is_dirty())
+    {
+        g_print("Closing dirty editor.\n");
+    }
+    ea->close_editor(ed);
+    return true;
+}
+
 void
 SelectLineAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params) 
 {
