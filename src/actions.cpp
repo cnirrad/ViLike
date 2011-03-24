@@ -693,10 +693,10 @@ bool OpenFileAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &
     SourceEditor *e = Gtk::manage(new SourceEditor()); 
 
     EditorArea *ea = Application::get()->get_main_window()->get_editor_area();
-    ea->add_editor(e);
 
     if (e->open(params))
     {
+        ea->add_editor(e);
         g_print("Added page for file %s\n", params.data());
     }
     else
