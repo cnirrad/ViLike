@@ -152,3 +152,9 @@ ExecutableAction* lookup(WidgetToKeyActionMap &map,
     return a;
 }
 
+
+void ExecutableAction::execute()
+{
+    m_action->activate();
+}
+

@@ -19,6 +19,9 @@ class ViCommandMode : public ViModeHandler
 
         void execute(const Glib::ustring &cmd);
 
+        int get_cmd_count();
+        Glib::ustring get_cmd_params();
+
     protected:
         void execute_search(const Glib::ustring &pattern, char begin);
         void execute_command(const Glib::ustring &cmd);
@@ -34,6 +37,9 @@ class ViCommandMode : public ViModeHandler
 
         std::list<std::string> m_history;
         std::list<std::string>::iterator m_history_it;
+
+        int m_cmd_count;
+        Glib::ustring m_cmd_params;
 };
 
 #endif

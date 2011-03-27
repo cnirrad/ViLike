@@ -17,6 +17,8 @@ class ViInsertMode : public ViModeHandler
                       const Glib::ustring &key,
                       ExecutableAction *a );
 
+        int get_cmd_count() { return 0; }
+        Glib::ustring get_cmd_params() { return ""; }
     protected:
         WidgetToKeyActionMap m_keyMap;
 };

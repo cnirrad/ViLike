@@ -5,15 +5,17 @@
 //
 //  MotionAction
 //
-bool
-MotionAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+void
+MotionAction::execute()
 {
-    if (m_vi->get_mode() == vi_visual)
-        m_ext_sel = true;
+    if (get_vi()->get_mode() == vi_visual)
+        get_vi()->set_extend_selection( true );
     else
-        m_ext_sel = false;
+        get_vi()->set_extend_selection( false );
 
-    perform_motion(w, count_modifier, params);
+    ExecutableAction::execute();
+
+    Gtk::Widget *w = get_focused_widget();
     
     if (is_text_widget(w))
     {
@@ -23,24 +25,25 @@ MotionAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
     }
 }
 
-bool
-MotionAction::execute_as_subcommand(Gtk::Widget *w, 
-                                    ExecutableAction *a,
-                                    int count,
-                                    Glib::ustring &params)
+void
+MotionAction::execute_as_subcommand( ExecutableAction *a )
 {
     //
     //  If waiting for a motion, then extend selection will be
     //  true. The selection is how the command waiting for the 
     //  motion will know what to act upon.
     //
-    m_ext_sel = true;
+    get_vi()->set_extend_selection( true );
 
-    perform_motion(w, count, params);
+    //
+    //  Execute the motion, and then the main command.
+    //
+    //ExecutableAction::execute();
+    m_action->activate();
 
     if (a)
     {
-        a->execute(w, count, params);
+        a->execute();
     }
 
     //
@@ -48,7 +51,8 @@ MotionAction::execute_as_subcommand(Gtk::Widget *w,
     // allow other commands to know the range to act on. Remove the 
     // selection now.
     //
-    if (m_ext_sel && m_vi->get_mode() != vi_visual && is_text_widget(w))
+    Gtk::Widget *w = get_focused_widget();
+    if (m_ext_sel && get_vi()->get_mode() != vi_visual && is_text_widget(w))
     {
         Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
         Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
@@ -56,5 +60,7 @@ MotionAction::execute_as_subcommand(Gtk::Widget *w,
         Gtk::TextBuffer::iterator it = get_cursor_iter( buffer ); 
         buffer->place_cursor(it);
     } 
-    return true;
+
+    get_vi()->set_extend_selection( false );
+    return;
 }

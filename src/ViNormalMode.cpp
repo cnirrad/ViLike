@@ -134,7 +134,7 @@ ViNormalMode::handle_key_press( const Glib::ustring &str )
         }
         else if (BIT_ON(action->m_flags, is_motion))
         {
-            MotionAction *motion = dynamic_cast<MotionAction*>(action);
+            MotionAction *motion = static_cast<MotionAction*>(action);
             m_context->set_motion( motion );
         }
 
@@ -181,6 +181,15 @@ void ViNormalMode::clear_key_buffer( unsigned char flags )
         m_vi->set_current_register(0x00);
 }
 
+int ViNormalMode::get_cmd_count()
+{
+    return m_context->get_count();
+}
+
+Glib::ustring ViNormalMode::get_cmd_params()
+{
+    return m_context->get_param();
+}
 
 //
 //  VI Action Context
@@ -196,11 +205,11 @@ ViActionContext::execute(Gtk::Widget *w)
     
     if (m_motion != NULL)
     {
-        m_motion->execute_as_subcommand(w, m_action, m_count, m_param);
+        m_motion->execute_as_subcommand(m_action);
     }
     else if (m_action != NULL)
     {
-        m_action->execute(w, m_count, m_param);
+        m_action->execute();
     }
 }
 
@@ -232,3 +241,4 @@ void ViActionContext::set_param( Glib::ustring p )
     m_param = p; 
     m_flags = m_flags ^ await_param;
 }
+

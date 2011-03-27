@@ -34,8 +34,7 @@ ViInsertMode::handle_key_press( const Glib::ustring &str )
 
     if (action)
     {
-        Glib::ustring params = "";
-        action->execute(w, 1, params);
+        action->execute();
         return true;
     }
 

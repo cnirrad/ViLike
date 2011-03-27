@@ -12,24 +12,20 @@ class ViKeyManager;
 
 class MotionAction : public ExecutableAction {
     public:
-        MotionAction(ViKeyManager *vi) : 
-            ExecutableAction(vi, is_motion),
+        MotionAction(Glib::RefPtr< Gtk::Action > action) : 
+            ExecutableAction(action, is_motion),
             m_ext_sel(false)
         {
         }
 
-        MotionAction(ViKeyManager *vi, unsigned char flags) :
-            ExecutableAction(vi, is_motion | flags)
+        MotionAction(Glib::RefPtr< Gtk::Action > action, unsigned char flags) :
+            ExecutableAction(action, is_motion | flags)
         {
         }
 
-        bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-        bool execute_as_subcommand(Gtk::Widget *w, 
-                                   ExecutableAction *act,
-                                   int count,
-                                   Glib::ustring &params);
+        void execute();
+        void execute_as_subcommand( ExecutableAction *act );
 
-        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &param) = 0;
 
     protected:
         bool m_ext_sel;

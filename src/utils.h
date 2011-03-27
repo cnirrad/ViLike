@@ -3,10 +3,16 @@
 
 #include <gtkmm.h>
 
+#include "ViKeyManager.h"
 #include "ViTextIter.h"
 
 #define BIT_ON( bit_field, bit )                                \
     (bit_field & bit) == bit
+
+/**
+ *  Convenience function to get the key manager.
+ */
+ViKeyManager* get_vi();
 
 /**
  *  Returns true if widget w is a text view or source view.

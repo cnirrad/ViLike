@@ -2,6 +2,10 @@
 
 #include "App.h"
 
+ViKeyManager* get_vi()
+{
+    return Application::get()->get_main_window()->get_key_manager();
+}
 
 bool is_text_widget( Gtk::Widget *w ) 
 {

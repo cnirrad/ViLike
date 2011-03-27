@@ -151,25 +151,24 @@ void ViCommandMode::execute_command(const Glib::ustring &cmd_line)
 {
     // TODO: more intelligent parsing
     Glib::ustring cmd;
-    Glib::ustring params;
     int idx = cmd_line.find_first_of(' ');
     if (idx > 0)
     {
-        params = cmd_line.substr(idx+1);
+        m_cmd_params = cmd_line.substr(idx+1);
         cmd = cmd_line.substr(0, idx);
     }
     else
     {
         cmd = cmd_line;
+        m_cmd_params = "";
     }
 
-    g_print("Command %s with params '%s'\n", cmd.data(), params.data());
+    g_print("Command %s with params '%s'\n", cmd.data(), m_cmd_params.data());
 
     ExecutableAction *act = m_commandMap[cmd];
     if (act)
     {
-        Gtk::Widget *w = get_focused_widget();
-        act->execute(w, 1, params);
+        act->execute();
     }
 }
 
@@ -229,4 +228,13 @@ ViCommandMode::next_history(Direction d, char begin)
     return *m_history_it;
 }
 
+int ViCommandMode::get_cmd_count()
+{
+    return m_cmd_count;
+}
+
+Glib::ustring ViCommandMode::get_cmd_params()
+{
+    return m_cmd_params;
+}
 

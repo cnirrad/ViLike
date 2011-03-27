@@ -47,6 +47,24 @@ class ViKeyManager
 
         Glib::ustring get_last_key() const;
 
+        /**
+         *  Retrieves the count modifier. This can be used by a 
+         *  function that implements a given action.
+         */
+        int get_cmd_count();
+        
+        /**
+         *  Retreives the paramaters for the current command, if any.
+         */
+        Glib::ustring get_cmd_params();
+        
+        /**
+         *  Returns a boolean to indicate if motion commands should
+         *  simply move the cursor (false) or extend the selection (true).
+         */
+        bool get_extend_selection();
+        void set_extend_selection(bool ext_sel);
+
         /** 
          * Sets the current ViMode
          */
@@ -69,6 +87,8 @@ class ViKeyManager
         Glib::ustring m_last_key;
         Glib::ustring m_last_search;
         Direction m_last_search_direction;
+
+        bool m_ext_selection;
 };
 
 

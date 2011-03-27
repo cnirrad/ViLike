@@ -29,7 +29,7 @@ class Application
 
         static Application *self;
         MainWindow *m_main_window;
-
+        Glib::RefPtr<Gtk::ActionGroup> m_action_group;
         s7_scheme *m_scm;
 };
 

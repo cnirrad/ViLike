@@ -9,16 +9,11 @@
 #include "ViTextIter.h"
 
 
-MovementAction::MovementAction( ViKeyManager *vi, GtkMovementStep step, gint count ) :
-    MotionAction(vi),
-    m_count(count),
-    m_step(step)
+void move_cursor( GtkMovementStep step, gint count )
 {
-}
+    int count_modifier = get_vi()->get_cmd_count();
+    Gtk::Widget *w = get_focused_widget();
 
-void
-MovementAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
-{
     if (count_modifier == -1)
         count_modifier = 1;
 
@@ -32,9 +27,9 @@ MovementAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring
         gboolean ret_val;
         gtk_signal_emit_by_name( (GtkObject*)w->gobj(), 
                                  "move-cursor",
-                                 m_step,
-                                 m_count * count_modifier,
-                                 m_ext_sel,
+                                 step,
+                                 count * count_modifier,
+                                 get_vi()->get_extend_selection(),
                                  &ret_val );
         
     }
@@ -42,21 +37,12 @@ MovementAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring
     return;
 }
 
-ModeAction::ModeAction( ViKeyManager *vi, ViMode mode ) :
-    ExecutableAction(vi),
-    m_mode(mode),
-    m_move_act(NULL)
+void move_and_change_mode( ViMode mode )
 {
-
+    //TODO
 }
 
-ModeAction::ModeAction( MovementAction *act, ViKeyManager *vi, ViMode mode ) :
-    ExecutableAction(vi),
-    m_mode(mode),
-    m_move_act(act)
-{
-}
-
+/*
 bool
 ModeAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
 {
@@ -66,36 +52,38 @@ ModeAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
             count_modifier = 1;
         m_move_act->execute(w, count_modifier, params);
     }
-    m_vi->set_mode(m_mode);
+    get_vi()->set_mode(m_mode);
 
     return true;
 }
+*/
 
-bool
-ReplaceAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+void set_replace_mode()
 {
+    Gtk::Widget *w = get_focused_widget();
+
     if (is_text_widget(w))
     {
         Gtk::TextView *view = static_cast<Gtk::TextView*>(w);
-        m_vi->set_mode(vi_insert);        
+        get_vi()->set_mode(vi_insert);        
         view->set_overwrite(true);
     }
-    return true;
+    return;
 }
 
-bool
-ChooseRegistryAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
+void choose_register()
 {
-    m_vi->set_current_register( params[0] );
+    Glib::ustring params = get_vi()->get_cmd_params();
+    get_vi()->set_current_register( params[0] );
     g_print("Set register = %s\n", params.data());
-    return true;
 }
 
 //
 //  Helper function for yank and delete
 //
-Glib::ustring yank(ViKeyManager *vi, Gtk::Widget *w, bool del = false, ViOperatorScope scope = vi_characterwise)
+Glib::ustring do_yank( Gtk::Widget *w, bool del = false, ViOperatorScope scope = vi_characterwise)
 {
+    ViKeyManager *vi = get_vi();
     Glib::ustring text;
     if (is_text_widget(w))
     {
@@ -125,55 +113,19 @@ Glib::ustring yank(ViKeyManager *vi, Gtk::Widget *w, bool del = false, ViOperato
     return text;
 }
 
-bool
-YankAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
+void delete_text()
 {
-    yank(m_vi, w);
-    return true;
+    Gtk::Widget *w = get_focused_widget();
+    do_yank( w, true );
+    return; 
 }
 
-bool
-PutAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
+
+void delete_char(Direction dir)
 {
-    char r = m_vi->get_current_register();
-
-    ViRegisterValue val = m_vi->get_register(r);
-
-    if (is_text_widget(w))
-    {
-        Gtk::TextView *view = static_cast<Gtk::TextView*>(w);
-        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
-
-        ViTextIter cursor = get_cursor_iter( buffer ); 
-
-        if (val.scope == vi_characterwise)
-        {
-            if (m_next)
-                cursor.forward_char();
-        }
-        else 
-        {
-            if (m_next)
-                cursor.forward_line();
-            else
-                cursor.set_line_offset(0);
-        }
-
-        buffer->insert(cursor, val.text);
-    }
-    return true;
-}
-
-bool
-DeleteAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
-{
-    yank(m_vi, w, true);
-    return true;
-}
-
-bool
-DeleteOneAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
-{
+    int count_modifier = get_vi()->get_cmd_count();
+    Gtk::Widget *w = get_focused_widget();
+    
     if (count_modifier == -1)
         count_modifier = 1;
 
@@ -184,30 +136,39 @@ DeleteOneAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &par
 
         ViTextIter end = get_cursor_iter( buffer ); 
 
-        if (m_before)
+        if (dir == Backward)
             end.backward_cursor_positions(count_modifier);
         else
             end.forward_cursor_positions(count_modifier);
 
         set_cursor( end, true );
-        yank(m_vi, w, true);
+        do_yank(w, true);
     }
    
-    return true;
+    return;
 }
 
-bool
-ChangeAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params )
-{
-    yank(m_vi, w, true); 
-    m_vi->set_mode(vi_insert);
 
-    return true;
+void change_text()
+{
+    Gtk::Widget *w = get_focused_widget();
+    do_yank(w, true); 
+    get_vi()->set_mode(vi_insert);
+
+    return; 
 }
 
-bool
-CreateMarkAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &params ) 
+void create_mark()
 {
+    Glib::ustring params = get_vi()->get_cmd_params();
+
+    if ( params == "" )
+    {
+        return;
+    }
+
+    Gtk::Widget *w = get_focused_widget();
+
     if (is_text_widget(w))
     {
         Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
@@ -215,22 +176,21 @@ CreateMarkAction::execute( Gtk::Widget *w, int count_modifier, Glib::ustring &pa
 
         ViTextIter it = get_cursor_iter( buffer ); 
 
-        if ( params == "" )
-        {
-            return false;
-        }
-
         buffer->create_mark( params, it );
     }
 }
 
-void
-GotoMarkAction::perform_motion( Gtk::Widget *w, int count_modifier, Glib::ustring &params ) 
+
+void goto_mark()
 {
+    Glib::ustring params = get_vi()->get_cmd_params();
+
     if ( params == "" )
     {
         return;
     }
+
+    Gtk::Widget *w = get_focused_widget();
 
     if (is_text_widget(w))
     {
@@ -242,24 +202,22 @@ GotoMarkAction::perform_motion( Gtk::Widget *w, int count_modifier, Glib::ustrin
 
         if ( mark == NULL )
         {
-            m_vi->show_error( "Mark %s not present.", params.data() );
+            get_vi()->show_error( "Mark %s not present.", params.data() );
             return;
         }
 
         Gtk::TextBuffer::iterator iter = 
                         buffer->get_iter_at_mark( mark );
 
-        set_cursor( iter, m_ext_sel );
+        set_cursor( iter, get_vi()->get_extend_selection() );
    }
 
 }
 
-void
-GotoLineAction::perform_motion( Gtk::Widget *w, int line, Glib::ustring &params ) 
-{
-    if (line == -1)
-        line = m_line;
 
+void goto_specific_line( int line )
+{
+    Gtk::Widget *w = get_focused_widget();
 
     if (is_text_widget(w))
     {
@@ -272,39 +230,40 @@ GotoLineAction::perform_motion( Gtk::Widget *w, int line, Glib::ustring &params 
         //  The count from the Vi Key manager will still be zero if
         //  not count was given.
         //
-        if (line == -1 ) // && m_vi->get_count() == 0) 
+        if (line == -1 ) // && get_vi()->get_count() == 0) 
         {
             line = buffer->get_line_count();
         }
 
-        set_cursor_at_line( buffer, line, m_ext_sel );
+        set_cursor_at_line( buffer, line, get_vi()->get_extend_selection() );
     }
 
 }
 
-bool 
-KeySequenceAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+void goto_line()
 {
-    return m_vi->execute( m_keys );
+    int line = get_vi()->get_cmd_count();
+    goto_specific_line( line );
 }
 
-bool
-InsertLineAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params) 
+
+void execute_vi_key_sequence( Glib::ustring keys )
 {
-    if (is_text_widget(w))
-    {
-        Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
-        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
-        
-        Glib::ustring eol("\n");
-        buffer->insert_at_cursor(eol);
-    }
-    return true;
+    get_vi()->execute( keys );
+    return;
 }
 
-void 
-FindAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+void execute_key_sequence_from_params()
 {
+    Glib::ustring params = get_vi()->get_cmd_params();
+    execute_vi_key_sequence( params );
+}
+
+void find_char(GtkDirectionType dir)
+{
+    Glib::ustring params = get_vi()->get_cmd_params();
+    Gtk::Widget *w = get_focused_widget();
+
     if (params.length() > 1)
     {
         if (params == "<Space>")
@@ -329,12 +288,12 @@ FindAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &pa
         //  Take one step to make sure we don't match on the
         //  current character.
         //
-        if (!cursor.iter_next(m_dir))
+        if (!cursor.iter_next(dir))
         {
             return;
         }
 
-        while (cursor.iter_next(m_dir))
+        while (cursor.iter_next(dir))
         {
             gunichar ch = cursor.get_char();
             if (ch == '\r' || ch == '\n')
@@ -346,10 +305,10 @@ FindAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &pa
                 //  If extending selection, include the 
                 //  matched character.
                 //
-                if (m_ext_sel)
-                    cursor.iter_next(m_dir);
+                if (get_vi()->get_extend_selection())
+                    cursor.iter_next(dir);
 
-                set_cursor( cursor, m_ext_sel );
+                set_cursor( cursor, get_vi()->get_extend_selection() );
                 return;
             }
         }
@@ -357,9 +316,9 @@ FindAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &pa
 }
 
 
-bool 
-UndoAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+void undo()
 {
+    Gtk::Widget *w = get_focused_widget();
     if ( is_source_view( w ) )
     { 
         gtksourceview::SourceView *view = 
@@ -371,12 +330,13 @@ UndoAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
         if ( buffer->can_undo() )
             buffer->undo();
     }
-    return true;
+    return;
 }
 
-bool 
-RedoAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+void redo()
 {
+    Gtk::Widget *w = get_focused_widget();
+
     if ( is_source_view( w ) )
     { 
         gtksourceview::SourceView *view = 
@@ -388,12 +348,14 @@ RedoAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
         if ( buffer->can_redo() )
             buffer->redo();
     }
-    return true;
+    return;
 }
 
-void
-MatchBracketAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params) 
+
+void match_brace()
 {
+    Gtk::Widget *w = get_focused_widget();
+
     if ( !is_text_widget( w ) )
     { 
         return;
@@ -415,8 +377,9 @@ MatchBracketAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ust
     const match_chars map[] = { { '{', '}' },
                                 { '(', ')' },
                                 { '[', ']' },
+                                { '<', '>' },
                                 { 0, 0 } };
-    const int map_lgth = 3;
+    const int map_lgth = 4;
 
     gchar find = '\0';
     match_chars chars = {0, 0};
@@ -460,9 +423,9 @@ MatchBracketAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ust
         {
             if (level == 0)
             {
-                if (m_ext_sel)
+                if (get_vi()->get_extend_selection())
                     iter.iter_next(dir);     // make sure the ending bracket is selected too
-                set_cursor(iter, m_ext_sel);
+                set_cursor(iter, get_vi()->get_extend_selection());
                 return;
             }
             else
@@ -478,9 +441,10 @@ MatchBracketAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ust
     g_print("Match not found.\n");
 }
 
-void
-SearchWordUnderCursorAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params) 
+void search_word_under_cursor(Direction dir)
 {
+    Gtk::Widget *w = get_focused_widget();
+
     if (is_text_widget(w))
     {
         Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
@@ -492,7 +456,7 @@ SearchWordUnderCursorAction::perform_motion(Gtk::Widget *w, int count_modifier, 
         Glib::ustring word = iter.get_word();
         if (word == "")
         {
-            m_vi->show_error("No string under cursor.");
+            get_vi()->show_error("No string under cursor.");
             return;
         }
 
@@ -505,19 +469,16 @@ SearchWordUnderCursorAction::perform_motion(Gtk::Widget *w, int count_modifier, 
         word += esc;
         word += "\\b";
 
-        Direction dir = Backward;
-        if (m_forward)  
-            dir = Forward;
-
         Editor *ed = Application::get()->get_current_editor();
-        if ( !ed->search(word, dir, m_ext_sel) )
-            m_vi->show_error("Match not found.");
+        if ( !ed->search(word, dir, get_vi()->get_extend_selection()) )
+            get_vi()->show_error("Match not found.");
     }
 }
 
-bool
-SwapCaseAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+void swap_case()
 {
+    Gtk::Widget *w = get_focused_widget();
+
     if (is_text_widget(w))
     {
         Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
@@ -562,12 +523,16 @@ SwapCaseAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &param
         start = get_cursor_iter( buffer );
         buffer->insert(start, replace);
     }
-    return true;
+    return;
 }
 
-void
-WordMotionAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params) 
+
+
+void move_by_word( Direction dir )
 {
+    int count_modifier = get_vi()->get_cmd_count();
+    Gtk::Widget *w = get_focused_widget();
+
     if (count_modifier == -1)
         count_modifier = 1;
 
@@ -581,17 +546,16 @@ WordMotionAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustri
         ViTextIter iter(cursor);
         for (int i=0; i<count_modifier; ++i)
         {
-            if (m_forward)
+            if (dir == Forward)
                 iter.forward_next_word_start();
             else
                 iter.backward_next_word_start();
         }
-        set_cursor(iter, m_ext_sel);
+        set_cursor(iter, get_vi()->get_extend_selection());
     }
 }
 
-bool 
-WindowToggleAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+void toggle_window_state( Gdk::WindowState state )
 {
     MainWindow *main_win = Application::get()->get_main_window();
 
@@ -599,12 +563,12 @@ WindowToggleAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &p
 
     bool is_on = false;
 
-    if ( ( s & m_state ) == m_state )
+    if ( ( s & state ) == state )
     {
         is_on = true;
     }
 
-    switch( m_state )
+    switch( state )
     {
         case Gdk::WINDOW_STATE_MAXIMIZED:
             if (is_on)
@@ -636,8 +600,7 @@ WindowToggleAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &p
 
 }
 
-bool
-NextTabAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+void next_tab( Direction dir )
 {
     //
     //  This should go up the widget heirarchy to find the first
@@ -649,9 +612,9 @@ NextTabAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params
     int cur_page = e->get_current_page();
 
     if (cur_page == -1)
-        return false;
+        return;
 
-    if (m_forward)
+    if (dir == Forward)
     {
         if (cur_page == num_pages - 1)
         {
@@ -679,20 +642,23 @@ NextTabAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params
             e->prev_page();
         }
     }
-
-    return true;
 }
 
-bool QuitAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+void application_quit()
 {
+    //
+    //  TODO: Ask user to save any modified buffers.
+    //
     Application::get()->quit();
 }
 
-bool OpenFileAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+void open_file()
 {
     SourceEditor *e = Gtk::manage(new SourceEditor()); 
 
     EditorArea *ea = Application::get()->get_main_window()->get_editor_area();
+
+    Glib::ustring params = get_vi()->get_cmd_params();
 
     if (e->open(params))
     {
@@ -702,13 +668,11 @@ bool OpenFileAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &
     else
     {
         g_print("Error could not open file %s\n", params.data());
-        m_vi->show_error("Error: could not open file %s", params.data());
+        get_vi()->show_error("Error: could not open file %s", params.data());
     }
-    return true;
 }
 
-bool
-CloseFileAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params) 
+void close_current_file()
 {
     SourceEditor *ed = 
         static_cast<SourceEditor*>(Application::get()->get_current_editor());
@@ -719,12 +683,19 @@ CloseFileAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &para
         g_print("Closing dirty editor.\n");
     }
     ea->close_editor(ed);
-    return true;
+    return;
+}
+
+void yank_text() 
+{
+    do_yank(get_focused_widget());
 }
 
 void
-SelectLineAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params) 
+yank_line(bool del)
 {
+    Gtk::Widget *w = get_focused_widget();
+
     if (is_text_widget(w))
     {
         Gtk::TextView *view = static_cast<Gtk::TextView*>(w); 
@@ -739,7 +710,7 @@ SelectLineAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustri
         cursor.forward_line();
         set_cursor(cursor, true);
 
-        yank( m_vi, w, m_del, vi_linewise );
+        do_yank( w, del, vi_linewise );
 
         //
         //  Move back to the original offset
@@ -754,13 +725,42 @@ SelectLineAction::perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustri
     }
 }
 
-bool
-ChangeFocusAction::execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params)
+void put_text(Direction dir)
+{
+    char r = get_vi()->get_current_register();
+
+    ViRegisterValue val = get_vi()->get_register(r);
+
+    Gtk::Widget *w = get_focused_widget();
+    if (is_text_widget(w))
+    {
+        Gtk::TextView *view = static_cast<Gtk::TextView*>(w);
+        Glib::RefPtr<Gtk::TextBuffer> buffer = view->get_buffer();
+
+        ViTextIter cursor = get_cursor_iter( buffer ); 
+
+        if (val.scope == vi_characterwise)
+        {
+            if (dir == Forward)
+                cursor.forward_char();
+        }
+        else 
+        {
+            if (dir == Forward)
+                cursor.forward_line();
+            else
+                cursor.set_line_offset(0);
+        }
+
+        buffer->insert(cursor, val.text);
+    }
+
+}
+
+void change_focus( Gtk::DirectionType dir )
 {
     MainWindow *shell = Application::get()->get_main_window();
 
-    shell->child_focus( m_dir );
-
-    return true;
+    shell->child_focus( dir );
 }
 

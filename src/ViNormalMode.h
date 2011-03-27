@@ -29,6 +29,9 @@ class ViNormalMode : public ViModeHandler
          */
         void clear_key_buffer( unsigned char flags = 0x00 );
 
+        int get_cmd_count();
+        Glib::ustring get_cmd_params();
+
     protected:
         ViKeyManager *m_vi;
         ViActionContext *m_context;

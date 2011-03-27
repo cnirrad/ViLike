@@ -205,6 +205,26 @@ Glib::ustring ViKeyManager::get_last_key() const
     return m_last_key;
 }
 
+int ViKeyManager::get_cmd_count()
+{
+    return m_handlers[m_mode]->get_cmd_count();
+}
+
+Glib::ustring ViKeyManager::get_cmd_params()
+{
+    return m_handlers[m_mode]->get_cmd_params();
+}
+
+bool ViKeyManager::get_extend_selection()
+{
+    return m_ext_selection;
+}
+
+void ViKeyManager::set_extend_selection(bool ext_sel)
+{
+    m_ext_selection = ext_sel;
+}
+
 void ViKeyManager::set_mode( ViMode m )
 {
     ViModeHandler *old_handler = m_handlers[m_mode];

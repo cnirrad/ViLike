@@ -4,331 +4,149 @@
 #include "ViKeyManager.h"
 #include "ViMotionAction.h"
 
-
-class MovementAction : public MotionAction {
-    public:
-        MovementAction( ViKeyManager *vi, GtkMovementStep step, gint count );
-
-        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &param);
-
-    protected:
-        GtkMovementStep m_step;
-        gint m_count;
-};
-
-class ModeAction : public ExecutableAction {
-    public:
-        ModeAction( ViKeyManager *vi, ViMode mode );
-        ModeAction( MovementAction *act, ViKeyManager *vi, ViMode mode );
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-    protected:
-        ViMode m_mode;
-        MovementAction *m_move_act;
-};
-
-class ReplaceAction : public ExecutableAction {
-    public:
-        ReplaceAction( ViKeyManager *vi ) : 
-            ExecutableAction(vi)
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-};
-
-class ChooseRegistryAction : public ExecutableAction {
-    public:
-        ChooseRegistryAction( ViKeyManager *vi ) :
-            ExecutableAction( vi, await_param )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-};
-
-class YankAction : public ExecutableAction {
-    public:
-        YankAction( ViKeyManager *vi ) : 
-            ExecutableAction( vi, await_motion )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-};
-
-class PutAction : public ExecutableAction {
-    public:
-        PutAction( ViKeyManager *vi, bool next ) :
-            ExecutableAction( vi ), m_next(next)
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-        bool m_next;
-};
-
-class DeleteAction : public ExecutableAction {
-
-    public:
-        DeleteAction( ViKeyManager *vi ) : 
-            ExecutableAction( vi, await_motion )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-};
-
-class DeleteOneAction : public ExecutableAction {
-
-    public:
-        DeleteOneAction( ViKeyManager *vi, bool before = false ) : 
-            ExecutableAction( vi ),
-            m_before( before )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-    protected:
-        bool m_before;
-};
-
-class ChangeAction : public ExecutableAction {
-    public:
-        ChangeAction( ViKeyManager *vi ) : 
-            ExecutableAction( vi, await_motion )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-};
-
-class CreateMarkAction : public ExecutableAction {
-    public:
-        CreateMarkAction( ViKeyManager *vi ) :
-            ExecutableAction( vi, await_param )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-};
-
-class GotoLineAction : public MotionAction {
-    public:
-        GotoLineAction( ViKeyManager *vi, int hardcoded_line_number = -1 ) :
-            MotionAction( vi ),
-            m_line(hardcoded_line_number)
-        {
-        }
-
-        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-    protected:
-        int m_line;
-};
-
-class GotoMarkAction : public MotionAction {
-    public:
-        GotoMarkAction( ViKeyManager *vi ) :
-            MotionAction( vi, await_param )
-        {
-        }
-
-        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-};
-
-class KeySequenceAction : public ExecutableAction {
-    public:
-        KeySequenceAction( ViKeyManager *vi, const Glib::ustring &keys ) :
-            ExecutableAction( vi ),
-            m_keys( keys )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-    protected:
-        Glib::ustring m_keys;
-};
-
-class InsertLineAction : public ExecutableAction {
-    public:
-        InsertLineAction( ViKeyManager *vi ) :
-            ExecutableAction( vi )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-};
-
-class FindAction : public MotionAction {
-    public:
-        FindAction( ViKeyManager *vi, bool forward ) :
-            MotionAction( vi, await_param )
-        {
-            if (forward)
-                m_dir = GTK_DIR_RIGHT;
-            else
-                m_dir = GTK_DIR_LEFT;
-        }
-
-        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-    protected:
-        GtkDirectionType m_dir;
-};
-
-class UndoAction : public ExecutableAction {
-    public:
-        UndoAction( ViKeyManager *vi ) :
-            ExecutableAction( vi )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-};
-
-class RedoAction : public ExecutableAction {
-    public:
-        RedoAction( ViKeyManager *vi ) :
-            ExecutableAction( vi )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-};
-
-class MatchBracketAction : public MotionAction {
-    public:
-        MatchBracketAction( ViKeyManager *vi ) :
-            MotionAction( vi )
-        {
-        }
-
-        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-};
-
-class SearchWordUnderCursorAction : public MotionAction {
-    public:
-        SearchWordUnderCursorAction( ViKeyManager *vi, bool forward = true ) :
-            MotionAction( vi ), m_forward(forward)
-        {
-        }
-
-        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-    protected:
-        bool m_forward;
-};
-
-class SwapCaseAction : public ExecutableAction {
-    public:
-        SwapCaseAction( ViKeyManager *vi ) :
-            ExecutableAction( vi )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-};
-
-class WordMotionAction : public MotionAction {
-    public:
-        WordMotionAction( ViKeyManager *vi, bool forward ) :
-            MotionAction( vi ),
-            m_forward( forward )
-        {
-        }
-
-        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-    protected:
-        bool m_forward;
-};
-
-class WindowToggleAction : public ExecutableAction {
-    public:
-        WindowToggleAction( ViKeyManager *vi, Gdk::WindowState s ) :
-            ExecutableAction( vi ), m_state( s )
-        {
-        }
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-    protected:
-        Gdk::WindowState m_state;
-};
-
-class NextTabAction : public ExecutableAction {
-    public:
-        NextTabAction( ViKeyManager *vi, bool forward ) :
-            ExecutableAction( vi ), 
-            m_forward( forward )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-    protected:
-        bool m_forward;
-};
-
-class QuitAction : public ExecutableAction {
-    public:
-        QuitAction( ViKeyManager *vi ) :
-            ExecutableAction( vi )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-};
-
-class OpenFileAction : public ExecutableAction {
-    public:
-        OpenFileAction( ViKeyManager *vi ) :
-            ExecutableAction( vi )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-};
-
-class CloseFileAction : public ExecutableAction {
-    public:
-        CloseFileAction( ViKeyManager *vi ) :
-            ExecutableAction( vi )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-};
-
-class SelectLineAction : public MotionAction {
-    public:
-        SelectLineAction( ViKeyManager *vi, bool del ) :
-            MotionAction( vi ), m_del( del )
-        {
-        }
-
-        virtual void perform_motion(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-        bool m_del;
-};
-
-class ChangeFocusAction : public ExecutableAction {
-    public:
-        ChangeFocusAction( ViKeyManager *vi, Gtk::DirectionType dir ) :
-            ExecutableAction( vi ), m_dir( dir )
-        {
-        }
-
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params);
-
-        Gtk::DirectionType m_dir;
-};
+/**
+ *  Cursor movement commands.
+ */
+void move_cursor( GtkMovementStep step, gint count );
+
+
+void change_mode( ViMode mode );
+
+/**
+ *  Sets the text view to replacement mode.
+ */
+void set_replace_mode();
+
+/**
+ *  Sets the register to use.
+ */
+void choose_register();
+
+/**
+ *  Deletes the highlighted text.
+ */
+void delete_text();
+
+/**
+ *  Deletes character under the cursor.  Accepts a count to delete
+ *  that many characters from the cursor on.
+ */
+void delete_char(Direction dir);
+
+/**
+ *  Change the highlighted text.
+ */
+void change_text();
+
+/**
+ *  Create a mark.
+ */
+void create_mark();
+
+/**
+ *  Moves the cursor to the chosen mark.
+ */
+void goto_mark();
+
+/**
+ *  Moves the cursor to a specific line in the file. A -1 will move 
+ *  the cursor to the end of the buffer.
+ */
+void goto_specific_line( int line );
+
+void goto_line();
+
+/**
+ *  Executes a sequence of key presses.
+ */
+void execute_vi_key_sequence( Glib::ustring keys );
+
+/**
+ *  Executes a sequence of key presses. This version executes
+ *  the keys from the command params.
+ */
+void execute_key_sequence_from_params();
+
+/**
+ *  Finds the next character (which is given as a action parameter) if it is on
+ *  the same line as the cursor.
+ */
+void find_char(GtkDirectionType dir);
+
+void undo();
+
+void redo();
+
+/**
+ *  When the cursor is on a bracket/brace/paren it will find
+ *  its match.
+ */
+void match_brace();
+
+/**
+ *  Searches for the word under the cursor.
+ */
+void search_word_under_cursor(Direction dir);
+
+/**
+ *  Swaps the case for the character under the cursor (or the
+ *  highlighted region).
+ */
+void swap_case();
+
+/**
+ *  Moves the cursor to the start of the next (or previous if 
+ *  dir == Backward) word.
+ */
+void move_by_word( Direction dir );
+
+/**
+ *  Toggles the given window state (i.e., fullscreen, maximized, iconified)
+ */
+void toggle_window_state( Gdk::WindowState state );
+
+/**
+ *  Goes to the next tab in a Gtk::Notebook
+ */
+void next_tab( Direction dir );
+
+/**
+ *  Quits the application.
+ */
+void application_quit();
+
+/**
+ *  Closes the file that currently has focus.
+ */
+void close_current_file();
+
+/**
+ *  Yanks the selected text into the chosen register (or the
+ *  default register if none chosen.
+ */
+void yank_text();
+
+/**
+ *  Select an entire line and yank it. The line will be deleted
+ *  if del is true.
+ */
+void yank_line( bool del );
+
+/**
+ *  Put (paste) text from chosen register (or the default register
+ *  if none chosen. The direction given will indicate if the text
+ *  will be placed before or after the cursor (or on the previous 
+ *  or next line for linewise data).
+ */
+void put_text(Direction dir);
+
+/**
+ *  Move the focus to the widget in the given direction.
+ */
+void change_focus( Gtk::DirectionType dir );
+
+void open_file();
+
+void close_file();
 
 #endif

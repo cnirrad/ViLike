@@ -97,22 +97,21 @@ class ViKeyManager;
  */
 class ExecutableAction {
     public:
-        ExecutableAction(ViKeyManager *vi) : 
+        ExecutableAction(Glib::RefPtr< Gtk::Action > action) : 
             m_flags(0),
-            m_vi(vi)
+            m_action(action)
         {
         }
-        ExecutableAction(ViKeyManager *vi, unsigned char flags) : 
+        ExecutableAction(Glib::RefPtr< Gtk::Action > action, unsigned char flags) : 
             m_flags(flags),
-            m_vi(vi)
+            m_action(action)
         {
         }
 
-        virtual bool execute(Gtk::Widget *w, int count_modifier, Glib::ustring &params) = 0;
+        virtual void execute();
 
+        Glib::RefPtr< Gtk::Action > m_action;
         unsigned char m_flags;
-        ViKeyManager *m_vi;
-
 };
 
 /**
@@ -135,6 +134,9 @@ class ViModeHandler
         virtual void map_key( const Glib::ustring &widet_type, 
                               const Glib::ustring &key,
                               ExecutableAction *a ) = 0;
+
+        virtual int get_cmd_count() = 0;
+        virtual Glib::ustring get_cmd_params() = 0;
 };
 
 #endif
