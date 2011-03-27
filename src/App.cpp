@@ -84,37 +84,25 @@ void setup_vi_keybindings(MainWindow *win,
                           Glib::RefPtr<Gtk::ActionGroup> act_grp) 
 {
     ViKeyManager *vi = win->get_key_manager();
-/*
-    //
-    //  Movement keys
-    //
-
-    vi->map_key( vi_normal, "<Left>", left_act );
-    vi->map_key( vi_normal, "<Down>", down_act );
-    vi->map_key( vi_normal, "<Up>", up_act );
-    vi->map_key( vi_normal, "<Right>", right_act );
-    vi->map_key( vi_normal, "W", new MovementAction(vi, GTK_MOVEMENT_WORDS, 1));
-    vi->map_key( vi_normal, "<PgDn>", page_down_act );
-    vi->map_key( vi_normal, "<PgUp>", page_up_act );
-    vi->map_key( vi_normal, "<BS>", left_act );
-
-    vi->map_key( vi_normal, "<Home>", bol_act );
-    vi->map_key( vi_normal, "<End>", eol_act );
-
-
-    //
-    //  Insert/append
-    //
-    vi->map_key( vi_normal, "V", new ModeAction( vi, vi_visual ));
-
-    
-*/
+    ExecutableAction *last_action = NULL;
 
 #define MK_ACTION( name, label, mode, key_binding, flags, fun_ptr )  do {                       \
     Glib::RefPtr<Gtk::Action> _action = Gtk::Action::create( name, label );               \
     act_grp->add( _action, fun_ptr );                                                     \
-    vi->map_key( mode, key_binding, new ExecutableAction(  _action, flags ) );       \
+    last_action = new ExecutableAction(  _action, flags );                                \
+    vi->map_key( mode, key_binding, last_action );                                                   \
 } while (0)
+
+#define MK_MOTION( name, label, mode, key_binding, flags, fun_ptr )  do {                       \
+    Glib::RefPtr<Gtk::Action> _action = Gtk::Action::create( name, label );               \
+    act_grp->add( _action, fun_ptr );                                                     \
+    last_action = new MotionAction( _action, flags );                                     \
+    vi->map_key( mode, key_binding, last_action );            \
+} while (0)
+
+
+#define ALIAS( action, mode, key_binding )                              \
+    vi->map_key( mode, key_binding, action )
 
     MK_ACTION( "set-insert-mode", "Switches to insert mode", 
                vi_normal, "i", 0, 
@@ -125,6 +113,9 @@ void setup_vi_keybindings(MainWindow *win,
                vi_normal, ":", 0, 
                sigc::bind( 
                    sigc::mem_fun(vi, &ViKeyManager::set_mode), vi_command )); 
+
+    ALIAS( last_action, vi_normal, "/" );
+    ALIAS( last_action, vi_normal, "?" );
 
     MK_ACTION( "set-replace-mode", "Switches to replace (overwrite) mode", 
                vi_normal, "R", 0, sigc::ptr_fun( set_replace_mode ) );
@@ -169,15 +160,21 @@ void setup_vi_keybindings(MainWindow *win,
                vi_normal, "<C-Tab>", 0,
                sigc::bind( sigc::ptr_fun(next_tab), Forward) );
 
+    ALIAS( last_action, vi_command, ":tabNext" );
+
     MK_ACTION( "prev-tab", "Switches to the previous tab", 
                vi_normal, "<S-C-Tab>", 0,
                sigc::bind( sigc::ptr_fun(next_tab), Forward) );
+
+    ALIAS( last_action, vi_command, ":tabPrev" );
 
     MK_ACTION( "quit", Gtk::Stock::QUIT,
                vi_command, ":q", 0, sigc::ptr_fun(application_quit) );
 
     MK_ACTION( "open-file", "Opens the given file", 
                vi_command, ":e", 0, sigc::ptr_fun(open_file) );
+
+    ALIAS( last_action, vi_command, ":open" );
 
     MK_ACTION( "close", "Closes the current file", 
                vi_command, ":close", 0, sigc::ptr_fun(close_current_file) );
@@ -188,6 +185,10 @@ void setup_vi_keybindings(MainWindow *win,
     MK_ACTION( "delete-text", "Deletes text",
                vi_normal, "d", await_motion,
                sigc::ptr_fun(delete_text) );
+
+    MK_ACTION( "delete-to-end-of-line", "Deletes to end of line",
+               vi_normal, "D", 0, 
+               sigc::bind( sigc::ptr_fun(execute_vi_key_sequence), "d$" ) );
 
     MK_ACTION( "delete-char", "Delete character under cursor", 
                vi_normal, "x", 0,
@@ -235,6 +236,8 @@ void setup_vi_keybindings(MainWindow *win,
     MK_ACTION( "create-mark", "Creates a new mark at the cursor location",
                vi_normal, "m", await_param, sigc::ptr_fun(create_mark) );
 
+    ALIAS( last_action, vi_command, ":mark" );
+
     MK_ACTION( "change-text", "Selects and replaces text",
                vi_normal, "c", await_motion, sigc::ptr_fun(change_text) );
 
@@ -270,39 +273,57 @@ void setup_vi_keybindings(MainWindow *win,
                vi_normal, "A", 0, 
                sigc::bind( sigc::ptr_fun( execute_vi_key_sequence ), "$i" ));
 
-#define MK_MOTION( name, label, mode, key_binding, flags, fun_ptr )  do {                       \
-    Glib::RefPtr<Gtk::Action> _action = Gtk::Action::create( name, label );               \
-    act_grp->add( _action, fun_ptr );                                                     \
-    vi->map_key( mode, key_binding, new MotionAction( _action, flags ) );            \
-} while (0)
 
-
+    //
+    //  Motions
+    //
     MK_MOTION( "move-char-left", "Move to the left one character", vi_normal, "h", 0, 
                sigc::bind(sigc::ptr_fun(move_cursor), GTK_MOVEMENT_LOGICAL_POSITIONS, -1));
+
+    ALIAS( last_action, vi_normal, "<Left>" );
+    ALIAS( last_action, vi_normal, "<BS>" );
 
     MK_MOTION( "move-char-right", "Move to the right one character", vi_normal, "l", 0, 
                sigc::bind(sigc::ptr_fun(move_cursor), GTK_MOVEMENT_LOGICAL_POSITIONS, 1));
 
+    ALIAS( last_action, vi_normal, "<Right>" );
+
     MK_MOTION( "move-line-up", "Move cursor up by lines", vi_normal, "k", 0, 
                sigc::bind(sigc::ptr_fun(move_cursor), GTK_MOVEMENT_DISPLAY_LINES, -1));
+
+    ALIAS( last_action, vi_normal, "<Up>" );
 
     MK_MOTION( "move-line-down", "Move cursor down by lines", vi_normal, "j", 0, 
                sigc::bind(sigc::ptr_fun(move_cursor), GTK_MOVEMENT_DISPLAY_LINES, 1));
 
+    ALIAS( last_action, vi_normal, "<Down>" );
+
     MK_MOTION( "page-down", "Page down", vi_normal, "<C-f>", 0, 
                sigc::bind(sigc::ptr_fun(move_cursor), GTK_MOVEMENT_PAGES, 1));
+
+    ALIAS( last_action, vi_normal, "<PgDn>" );
 
     MK_MOTION( "page-up", "Page up", vi_normal, "<C-b>", 0, 
                sigc::bind(sigc::ptr_fun(move_cursor), GTK_MOVEMENT_PAGES, -1));
 
+    ALIAS( last_action, vi_normal, "<PgUp>" );
+
     MK_MOTION( "move-next-word", "Move to the start of the next word", vi_normal, "w", 0, 
                sigc::bind(sigc::ptr_fun(move_by_word), Forward));
+
+    MK_MOTION( "move-next-WORD", "Move to the start of the next WORD", vi_normal, "W", 0, 
+               sigc::bind(sigc::ptr_fun(move_cursor), GTK_MOVEMENT_WORDS, 1));
 
     MK_MOTION( "move-prev-word", "Move to the start of the next word", vi_normal, "b", 0, 
                sigc::bind(sigc::ptr_fun(move_by_word), Backward));
 
+    MK_MOTION( "move-prev-WORD", "Move to the start of the previous WORD", vi_normal, "B", 0, 
+               sigc::bind(sigc::ptr_fun(move_cursor), GTK_MOVEMENT_WORDS, -1));
+
     MK_MOTION( "move-start-of-line", "Move to the start of the current line", vi_normal, "0", 0, 
                sigc::bind(sigc::ptr_fun(move_cursor), GTK_MOVEMENT_DISPLAY_LINE_ENDS, -1));
+
+    ALIAS( last_action, vi_normal, "<Home>" );
 
     MK_MOTION( "move-start-of-line-first-char", "Moves to the first character of the line",
                vi_normal, "^", 0, 
@@ -310,6 +331,8 @@ void setup_vi_keybindings(MainWindow *win,
 
     MK_MOTION( "move-end-of-line", "Move to the end of the current line", vi_normal, "$", 0, 
                sigc::bind(sigc::ptr_fun(move_cursor), GTK_MOVEMENT_DISPLAY_LINE_ENDS, 1));
+
+    ALIAS( last_action, vi_normal, "<End>" );
 
     MK_MOTION( "match-brace", "Finds the matching brace", 
                vi_normal, "%", 0, sigc::ptr_fun(match_brace) );
@@ -335,19 +358,4 @@ void setup_vi_keybindings(MainWindow *win,
 
     MK_MOTION( "goto-mark", "Goes to a the chosen mark",
                vi_normal, "'", await_param, sigc::ptr_fun(goto_mark));
-/*    
- 
-
-    vi->map_key( vi_command, ":tabNext", nextTab );
-    vi->map_key( vi_command, ":tabPrev", prevTab );
-    vi->map_key( vi_command, ":fullscreen", fullAct );
-    vi->map_key( vi_command, ":maximize", maxAct );
-
-    //
-    //  Command Mode
-    //
-    ModeAction *cmdMode = new ModeAction( vi, vi_command );
-    vi->map_key( vi_normal, "/", cmdMode );
-    vi->map_key( vi_normal, "?", cmdMode );
-*/
 }
